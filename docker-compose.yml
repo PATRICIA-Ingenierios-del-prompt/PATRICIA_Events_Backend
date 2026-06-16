@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: events-postgres
+    environment:
+      POSTGRES_DB: events_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: rootpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - events_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d events_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - events-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: events-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/events_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: rootpassword
+      JPA_SHOW_SQL: "false"
+    ports:
+      - "8087:8087"
+    networks:
+      - events-net
+
+networks:
+  events-net:
+    driver: bridge
+
+volumes:
+  events_postgres_data:
