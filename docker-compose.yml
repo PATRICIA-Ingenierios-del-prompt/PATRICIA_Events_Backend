@@ -18,6 +18,28 @@ services:
     networks:
       - events-net
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: events-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      # Host ports shifted (+1) to avoid clashing with the Parches Rabbit.
+      # IMPORTANT: this is an *isolated* broker — messages do NOT flow between
+      # the Parches stack and this one. For real cross-MS integration, run a
+      # single shared RabbitMQ (extract into a parent compose) and point both
+      # apps at it via RABBITMQ_HOST.
+      - "5673:5672"      # AMQP
+      - "15673:15672"    # Management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - events-net
+
   app:
     build:
       context: .
@@ -26,10 +48,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/events_db
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: rootpassword
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
       JPA_SHOW_SQL: "false"
     ports:
       - "8087:8087"
