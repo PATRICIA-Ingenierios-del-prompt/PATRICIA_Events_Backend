@@ -24,14 +24,14 @@ public class EventController {
 
     @PostMapping
     public ResponseEntity<CreateEventResponse> createEvent(@RequestBody CreateEventRequest request, @RequestHeader("X-User-Id") UUID ownerId) {
-        Event newEvent = manageEventCase.createEvent(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), ownerId);
-        return ResponseEntity.ok(new CreateEventResponse(newEvent.getEventId(), newEvent.getName(), newEvent.getDescription(), newEvent.getCategory(), null));
+        Event newEvent = manageEventCase.createEvent(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime());
+        return ResponseEntity.ok(toCreateResponse(newEvent));
     }
 
     @PostMapping("/linked")
     public ResponseEntity<CreateEventResponse> createEventLinkedToParche(@RequestBody CreateEventLinkedToParcheRequest request, @RequestHeader("X-User-Id") UUID ownerId) {
-        Event newEvent = manageEventCase.createEventLinkedToParche(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), request.getParcheId(), ownerId);
-        return ResponseEntity.ok(new CreateEventResponse(newEvent.getEventId(), newEvent.getName(), newEvent.getDescription(), newEvent.getCategory(), newEvent.getParcheId()));
+        Event newEvent = manageEventCase.createEventLinkedToParche(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), request.getParcheId(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime());
+        return ResponseEntity.ok(toCreateResponse(newEvent));
     }
 
     @DeleteMapping("/{eventId}")
@@ -55,5 +55,18 @@ public class EventController {
     @GetMapping("/{eventId}")
     public ResponseEntity<EventResponse> getEvent(@PathVariable UUID eventId) {
         return ResponseEntity.ok(EventResponse.from(eventQueryCase.getEventById(eventId)));
+    }
+
+    private static CreateEventResponse toCreateResponse(Event event) {
+        return new CreateEventResponse(
+                event.getEventId(),
+                event.getName(),
+                event.getDescription(),
+                event.getCategory(),
+                event.getParcheId(),
+                event.getEventDate(),
+                event.getStartTime(),
+                event.getEndTime()
+        );
     }
 }

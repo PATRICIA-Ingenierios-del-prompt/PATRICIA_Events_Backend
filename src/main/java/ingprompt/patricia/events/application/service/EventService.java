@@ -12,6 +12,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.UUID;
 
 @Service
@@ -22,17 +25,19 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
 
     @Override
     @Transactional
-    public Event createEvent(String name, String description, Category category, int maxCapacity, UUID ownerId) {
-        Event event = new Event(UUID.randomUUID(), name, description, category, maxCapacity, ownerId);
+    public Event createEvent(String name, String description, Category category, int maxCapacity, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime) {
+        Event event = new Event(UUID.randomUUID(), name, description, category, maxCapacity, ownerId, eventDate, startTime, endTime);
+        event.validateSchedule(LocalDateTime.now());
         repositoryOutPort.save(event);
-        // eventPublisher.publishEventCreated(event)  -- standalone event, no parche linkage
+        // eventPublisher.publishEventCreated(event)
         return event;
     }
 
     @Override
     @Transactional
-    public Event createEventLinkedToParche(String name, String description, Category category, int maxCapacity, UUID parcheId, UUID ownerId) {
-        Event event = new Event(UUID.randomUUID(), name, description, category, maxCapacity, parcheId, ownerId);
+    public Event createEventLinkedToParche(String name, String description, Category category, int maxCapacity, UUID parcheId, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime) {
+        Event event = new Event(UUID.randomUUID(), name, description, category, maxCapacity, parcheId, ownerId, eventDate, startTime, endTime);
+        event.validateSchedule(LocalDateTime.now());
         repositoryOutPort.save(event);
         // eventPublisher.publishEventLinkedToParche(event.getEventId(), parcheId, ownerId)
         return event;
@@ -45,7 +50,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         if (!event.isOwnedBy(ownerId)) {
             throw new NotEventOwnerException(ownerId, eventId);
         }
-        UUID parcheId = event.getParcheId(); // captured before delete for the outbound event
+        UUID parcheId = event.getParcheId();
         repositoryOutPort.delete(event);
         // eventPublisher.publishEventDeleted(eventId, parcheId)
     }
@@ -57,7 +62,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         if (event.hasParticipant(userId)) {
             return;
         }
-        event.addParticipant(userId); // throws EventIsFullException if cap reached
+        event.addParticipant(userId);
         repositoryOutPort.save(event);
         // eventPublisher.publishUserJoinedEvent(eventId, userId)
     }
@@ -66,7 +71,6 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Transactional
     public void removeUserFromEvent(UUID userId, UUID eventId, UUID requesterId) {
         Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
-        // Self-leave OR owner kick. Anyone else → forbidden.
         boolean selfLeave = userId.equals(requesterId);
         if (!selfLeave && !event.isOwnedBy(requesterId)) {
             throw new NotEventOwnerException(requesterId, eventId);

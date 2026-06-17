@@ -4,6 +4,8 @@ import ingprompt.patricia.events.domain.enums.Category;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,8 +32,16 @@ public class EventEntity {
     @Column(nullable = false)
     private int maxCapacity;
 
-    // null when the event isn't linked to any parche
     private UUID parcheId;
+
+    @Column(nullable = false)
+    private LocalDate eventDate;
+
+    @Column(nullable = false)
+    private LocalTime startTime;
+
+    @Column(nullable = false)
+    private LocalTime endTime;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "event_participants", joinColumns = @JoinColumn(name = "event_id"))
