@@ -2,6 +2,7 @@ package ingprompt.patricia.events.infrastructure.web.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import ingprompt.patricia.events.domain.enums.Category;
+import ingprompt.patricia.events.infrastructure.web.dto.LocationDto;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -22,4 +23,8 @@ public class CreateEventRequest {
 
     @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
+
+
+    private LocationDto meetingPoint;
+    private LocationDto destination;
 }

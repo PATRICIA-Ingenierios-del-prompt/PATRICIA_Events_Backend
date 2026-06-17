@@ -7,7 +7,9 @@ import ingprompt.patricia.events.infrastructure.persistence.postgre.EventReposit
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,5 +39,13 @@ public class EventRepositoryAdapter implements EventRepositoryOutPort {
             return;
         }
         postgreRepository.deleteAllByIdInBatch(eventIds);
+    }
+
+    @Override
+    public List<Event> findStartableCandidates(LocalDate onOrBefore) {
+        return postgreRepository.findByStartedFalseAndEventDateLessThanEqual(onOrBefore)
+                .stream()
+                .map(EventMapper::toDomain)
+                .toList();
     }
 }
