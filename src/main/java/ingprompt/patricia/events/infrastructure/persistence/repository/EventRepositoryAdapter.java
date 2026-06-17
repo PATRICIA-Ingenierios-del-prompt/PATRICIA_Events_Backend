@@ -7,6 +7,7 @@ import ingprompt.patricia.events.infrastructure.persistence.postgre.EventReposit
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,5 +29,13 @@ public class EventRepositoryAdapter implements EventRepositoryOutPort {
     @Override
     public Optional<Event> findById(UUID eventId) {
         return postgreRepository.findById(eventId).map(EventMapper::toDomain);
+    }
+
+    @Override
+    public void deleteAllByIds(Collection<UUID> eventIds) {
+        if (eventIds == null || eventIds.isEmpty()) {
+            return;
+        }
+        postgreRepository.deleteAllByIdInBatch(eventIds);
     }
 }
