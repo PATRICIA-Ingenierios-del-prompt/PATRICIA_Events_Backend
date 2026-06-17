@@ -18,6 +18,9 @@ public final class EventMapper {
         entity.setCategory(event.getCategory());
         entity.setMaxCapacity(event.getMaxCapacity());
         entity.setParcheId(event.getParcheId());
+        entity.setEventDate(event.getEventDate());
+        entity.setStartTime(event.getStartTime());
+        entity.setEndTime(event.getEndTime());
         entity.setUsersInscribed(new HashSet<>(event.getUsersInscribed()));
         return entity;
     }
@@ -30,7 +33,10 @@ public final class EventMapper {
                 entity.getCategory(),
                 entity.getMaxCapacity(),
                 entity.getParcheId(),
-                entity.getOwnerId()
+                entity.getOwnerId(),
+                entity.getEventDate(),
+                entity.getStartTime(),
+                entity.getEndTime()
         );
         event.setUsersInscribed(entity.getUsersInscribed() == null
                 ? new HashSet<>()
