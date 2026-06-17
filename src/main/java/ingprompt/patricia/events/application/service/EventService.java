@@ -107,6 +107,19 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     }
 
     @Override
+    @Transactional
+    public void endDueEvents() {
+        LocalDateTime now = LocalDateTime.now();
+        for (Event event : repositoryOutPort.findFinishableCandidates(now.toLocalDate())) {
+            if (!event.isFinished() && !event.endsAt().isAfter(now)) {
+                event.markFinished();
+                repositoryOutPort.save(event);
+                eventPublisher.publishEventEnded(event.getEventId());
+            }
+        }
+    }
+
+    @Override
     public Event getEventById(UUID eventId) {
         return repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
     }

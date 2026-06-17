@@ -3,8 +3,10 @@ package ingprompt.patricia.events.infrastructure.messaging.publisher;
 import ingprompt.patricia.events.application.port.out.EventPublisherOut;
 import ingprompt.patricia.events.infrastructure.messaging.config.RabbitMQConfig;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventDeletedEvent;
+import ingprompt.patricia.events.infrastructure.messaging.event.EventEndedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventLinkedToParcheEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventStartedEvent;
+import ingprompt.patricia.events.infrastructure.messaging.event.IncidentReportedEvent;
 import lombok.AllArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
@@ -41,6 +43,24 @@ public class EventPublisherAdapter implements EventPublisherOut {
                 RabbitMQConfig.EVENT_EXCHANGE,
                 RabbitMQConfig.EVENT_STARTED_ROUTING_KEY,
                 new EventStartedEvent(eventId, participants)
+        );
+    }
+
+    @Override
+    public void publishEventEnded(UUID eventId) {
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EVENT_EXCHANGE,
+                RabbitMQConfig.EVENT_ENDED_ROUTING_KEY,
+                new EventEndedEvent(eventId)
+        );
+    }
+
+    @Override
+    public void publishIncidentReported(UUID eventId, UUID reportId, UUID reporterId) {
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EVENT_EXCHANGE,
+                RabbitMQConfig.EVENT_INCIDENT_REPORTED_ROUTING_KEY,
+                new IncidentReportedEvent(eventId, reportId, reporterId)
         );
     }
 }
