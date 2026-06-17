@@ -1,6 +1,7 @@
 package ingprompt.patricia.events.infrastructure.persistence.entity;
 
 import ingprompt.patricia.events.domain.enums.Category;
+import ingprompt.patricia.events.domain.model.Location;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -42,6 +43,27 @@ public class EventEntity {
 
     @Column(nullable = false)
     private LocalTime endTime;
+
+    @Column(nullable = false)
+    private boolean started;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "meeting_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "meeting_longitude")),
+            @AttributeOverride(name = "address", column = @Column(name = "meeting_address")),
+            @AttributeOverride(name = "placeId", column = @Column(name = "meeting_place_id"))
+    })
+    private Location meetingPoint;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "destination_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "destination_longitude")),
+            @AttributeOverride(name = "address", column = @Column(name = "destination_address")),
+            @AttributeOverride(name = "placeId", column = @Column(name = "destination_place_id"))
+    })
+    private Location destination;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "event_participants", joinColumns = @JoinColumn(name = "event_id"))

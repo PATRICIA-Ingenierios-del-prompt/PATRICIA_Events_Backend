@@ -21,6 +21,9 @@ public final class EventMapper {
         entity.setEventDate(event.getEventDate());
         entity.setStartTime(event.getStartTime());
         entity.setEndTime(event.getEndTime());
+        entity.setMeetingPoint(event.getMeetingPoint());
+        entity.setDestination(event.getDestination());
+        entity.setStarted(event.isStarted());
         entity.setUsersInscribed(new HashSet<>(event.getUsersInscribed()));
         return entity;
     }
@@ -38,6 +41,9 @@ public final class EventMapper {
                 entity.getStartTime(),
                 entity.getEndTime()
         );
+        event.setMeetingPoint(entity.getMeetingPoint());
+        event.setDestination(entity.getDestination());
+        event.setStarted(entity.isStarted());
         event.setUsersInscribed(entity.getUsersInscribed() == null
                 ? new HashSet<>()
                 : new HashSet<>(entity.getUsersInscribed()));
