@@ -3,6 +3,7 @@ package ingprompt.patricia.events.domain.model;
 import ingprompt.patricia.events.domain.enums.Category;
 import ingprompt.patricia.events.domain.exception.CannotRemoveOwnerException;
 import ingprompt.patricia.events.domain.exception.EventIsFullException;
+import ingprompt.patricia.events.domain.exception.InvalidEventLocationException;
 import ingprompt.patricia.events.domain.exception.InvalidEventScheduleException;
 import lombok.Data;
 
@@ -32,6 +33,10 @@ public class Event {
     private LocalDate eventDate;
     private LocalTime startTime;
     private LocalTime endTime;
+
+    private Location meetingPoint;
+    private Location destination;
+    private boolean started;
 
     public Event(UUID eventId, String name, String description, Category category, int maxCapacity, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime) {
         this(eventId, name, description, category, maxCapacity, null, ownerId, eventDate, startTime, endTime);
@@ -71,6 +76,19 @@ public class Event {
         if (duration.compareTo(MAX_DURATION) > 0) {
             throw new InvalidEventScheduleException("Event duration cannot exceed " + MAX_DURATION.toHours() + " hours");
         }
+    }
+
+    public void validateLocations() {
+        if (destination == null || !destination.isComplete()) {
+            throw new InvalidEventLocationException("A valid destination is required");
+        }
+        if (meetingPoint != null && !meetingPoint.isComplete()) {
+            throw new InvalidEventLocationException("Meeting point is present but its coordinates are invalid");
+        }
+    }
+
+    public void markStarted() {
+        this.started = true;
     }
 
     public LocalDateTime startsAt() {

@@ -4,10 +4,12 @@ import ingprompt.patricia.events.application.port.out.EventPublisherOut;
 import ingprompt.patricia.events.infrastructure.messaging.config.RabbitMQConfig;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventDeletedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventLinkedToParcheEvent;
+import ingprompt.patricia.events.infrastructure.messaging.event.EventStartedEvent;
 import lombok.AllArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -30,6 +32,15 @@ public class EventPublisherAdapter implements EventPublisherOut {
                 RabbitMQConfig.EVENT_EXCHANGE,
                 RabbitMQConfig.EVENT_DELETED_ROUTING_KEY,
                 new EventDeletedEvent(eventId, parcheId)
+        );
+    }
+
+    @Override
+    public void publishEventStarted(UUID eventId, Set<UUID> participants) {
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EVENT_EXCHANGE,
+                RabbitMQConfig.EVENT_STARTED_ROUTING_KEY,
+                new EventStartedEvent(eventId, participants)
         );
     }
 }

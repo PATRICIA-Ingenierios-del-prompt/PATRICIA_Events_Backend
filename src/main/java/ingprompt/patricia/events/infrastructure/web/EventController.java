@@ -4,6 +4,8 @@ import ingprompt.patricia.events.application.port.in.EventQueryCase;
 import ingprompt.patricia.events.application.port.in.ManageEventCase;
 import ingprompt.patricia.events.application.port.in.ManageUserEventCase;
 import ingprompt.patricia.events.domain.model.Event;
+import ingprompt.patricia.events.domain.model.Location;
+import ingprompt.patricia.events.infrastructure.web.dto.LocationDto;
 import ingprompt.patricia.events.infrastructure.web.dto.request.CreateEventLinkedToParcheRequest;
 import ingprompt.patricia.events.infrastructure.web.dto.request.CreateEventRequest;
 import ingprompt.patricia.events.infrastructure.web.dto.response.CreateEventResponse;
@@ -24,13 +26,13 @@ public class EventController {
 
     @PostMapping
     public ResponseEntity<CreateEventResponse> createEvent(@RequestBody CreateEventRequest request, @RequestHeader("X-User-Id") UUID ownerId) {
-        Event newEvent = manageEventCase.createEvent(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime());
+        Event newEvent = manageEventCase.createEvent(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime(), toDomain(request.getMeetingPoint()), toDomain(request.getDestination()));
         return ResponseEntity.ok(toCreateResponse(newEvent));
     }
 
     @PostMapping("/linked")
     public ResponseEntity<CreateEventResponse> createEventLinkedToParche(@RequestBody CreateEventLinkedToParcheRequest request, @RequestHeader("X-User-Id") UUID ownerId) {
-        Event newEvent = manageEventCase.createEventLinkedToParche(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), request.getParcheId(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime());
+        Event newEvent = manageEventCase.createEventLinkedToParche(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), request.getParcheId(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime(), toDomain(request.getMeetingPoint()), toDomain(request.getDestination()));
         return ResponseEntity.ok(toCreateResponse(newEvent));
     }
 
@@ -55,6 +57,10 @@ public class EventController {
     @GetMapping("/{eventId}")
     public ResponseEntity<EventResponse> getEvent(@PathVariable UUID eventId) {
         return ResponseEntity.ok(EventResponse.from(eventQueryCase.getEventById(eventId)));
+    }
+
+    private static Location toDomain(LocationDto dto) {
+        return dto == null ? null : dto.toDomain();
     }
 
     private static CreateEventResponse toCreateResponse(Event event) {
