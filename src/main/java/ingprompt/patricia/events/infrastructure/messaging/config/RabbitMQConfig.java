@@ -20,6 +20,8 @@ public class RabbitMQConfig {
     public static final String EVENT_LINKED_ROUTING_KEY = "event.linked.to.parche";
     public static final String EVENT_DELETED_ROUTING_KEY = "event.deleted";
     public static final String EVENT_STARTED_ROUTING_KEY = "event.started";
+    public static final String EVENT_ENDED_ROUTING_KEY = "event.ended";
+    public static final String EVENT_INCIDENT_REPORTED_ROUTING_KEY = "event.incident.reported";
 
     // ---------- Inbound exchange (owned by Parches MS) ----------
     public static final String PARCHE_EXCHANGE = "parche.events";

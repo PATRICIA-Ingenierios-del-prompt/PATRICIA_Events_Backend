@@ -47,6 +47,9 @@ public class EventEntity {
     @Column(nullable = false)
     private boolean started;
 
+    @Column(nullable = false)
+    private boolean finished;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "latitude", column = @Column(name = "meeting_latitude")),

@@ -48,4 +48,12 @@ public class EventRepositoryAdapter implements EventRepositoryOutPort {
                 .map(EventMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<Event> findFinishableCandidates(LocalDate onOrBefore) {
+        return postgreRepository.findByFinishedFalseAndEventDateLessThanEqual(onOrBefore)
+                .stream()
+                .map(EventMapper::toDomain)
+                .toList();
+    }
 }

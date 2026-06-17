@@ -6,6 +6,7 @@ import ingprompt.patricia.events.domain.exception.EventNotFoundException;
 import ingprompt.patricia.events.domain.exception.InvalidEventLocationException;
 import ingprompt.patricia.events.domain.exception.InvalidEventScheduleException;
 import ingprompt.patricia.events.domain.exception.NotEventOwnerException;
+import ingprompt.patricia.events.domain.exception.NotEventParticipantException;
 import ingprompt.patricia.events.domain.exception.NotParcheMemberException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler({NotEventOwnerException.class, NotParcheMemberException.class})
+    @ExceptionHandler({NotEventOwnerException.class, NotParcheMemberException.class, NotEventParticipantException.class})
     public ResponseEntity<Map<String, String>> handleForbidden(RuntimeException ex) {
         return error(HttpStatus.FORBIDDEN, ex.getMessage());
     }

@@ -14,7 +14,6 @@ public interface EventRepositoryOutPort {
     Optional<Event> findById(UUID eventId);
 
     void deleteAllByIds(Collection<UUID> eventIds);
-
-    /** Candidates for "starting": not yet started and dated on/before the given day. */
     List<Event> findStartableCandidates(LocalDate onOrBefore);
+    List<Event> findFinishableCandidates(LocalDate onOrBefore);
 }
