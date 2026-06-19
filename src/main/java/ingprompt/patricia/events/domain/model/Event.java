@@ -38,6 +38,7 @@ public class Event {
     private Location destination;
     private boolean started;
     private boolean finished;
+    private String pictureUrl;
 
     public Event(UUID eventId, String name, String description, Category category, int maxCapacity, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime) {
         this(eventId, name, description, category, maxCapacity, null, ownerId, eventDate, startTime, endTime);

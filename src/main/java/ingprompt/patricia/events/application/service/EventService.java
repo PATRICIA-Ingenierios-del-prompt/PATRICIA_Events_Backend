@@ -31,10 +31,11 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
 
     @Override
     @Transactional
-    public Event createEvent(String name, String description, Category category, int maxCapacity, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime, Location meetingPoint, Location destination) {
+    public Event createEvent(String name, String description, Category category, int maxCapacity, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime, Location meetingPoint, Location destination, String pictureUrl) {
         Event event = new Event(UUID.randomUUID(), name, description, category, maxCapacity, ownerId, eventDate, startTime, endTime);
         event.setMeetingPoint(meetingPoint);
         event.setDestination(destination);
+        event.setPictureUrl(pictureUrl);
         event.validateSchedule(LocalDateTime.now());
         event.validateLocations();
         repositoryOutPort.save(event);
@@ -43,7 +44,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
 
     @Override
     @Transactional
-    public Event createEventLinkedToParche(String name, String description, Category category, int maxCapacity, UUID parcheId, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime, Location meetingPoint, Location destination) {
+    public Event createEventLinkedToParche(String name, String description, Category category, int maxCapacity, UUID parcheId, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime, Location meetingPoint, Location destination, String pictureUrl) {
         if (!membershipRepository.exists(parcheId, ownerId)) {
             throw new NotParcheMemberException(ownerId, parcheId);
         }
@@ -51,6 +52,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         Event event = new Event(UUID.randomUUID(), name, description, category, maxCapacity, parcheId, ownerId, eventDate, startTime, endTime);
         event.setMeetingPoint(meetingPoint);
         event.setDestination(destination);
+        event.setPictureUrl(pictureUrl);
         event.validateSchedule(LocalDateTime.now());
         event.validateLocations();
         repositoryOutPort.save(event);

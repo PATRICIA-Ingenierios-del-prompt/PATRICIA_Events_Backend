@@ -50,6 +50,9 @@ public class EventEntity {
     @Column(nullable = false)
     private boolean finished;
 
+    @Column(length = 1000)
+    private String pictureUrl;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "latitude", column = @Column(name = "meeting_latitude")),
