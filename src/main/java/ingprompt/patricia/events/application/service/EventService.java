@@ -99,8 +99,9 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Transactional
     public void startDueEvents() {
         LocalDateTime now = LocalDateTime.now();
-        for (Event event : repositoryOutPort.findStartableCandidates(now.toLocalDate())) {
-            if (!event.isStarted() && !event.startsAt().isAfter(now)) {
+        LocalDateTime trackingHorizon = now.plus(Event.TRACKING_LEAD_TIME);
+        for (Event event : repositoryOutPort.findStartableCandidates(trackingHorizon.toLocalDate())) {
+            if (!event.isStarted() && !event.startsAt().isAfter(trackingHorizon)) {
                 event.markStarted();
                 repositoryOutPort.save(event);
                 eventPublisher.publishEventStarted(event.getEventId(), event.getUsersInscribed());
