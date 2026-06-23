@@ -36,6 +36,7 @@ public class EventResponse {
 
     private LocationDto meetingPoint;
     private LocationDto destination;
+    private String pictureUrl;
 
     public static EventResponse from(Event event) {
         return new EventResponse(
@@ -50,7 +51,8 @@ public class EventResponse {
                 event.getStartTime(),
                 event.getEndTime(),
                 LocationDto.from(event.getMeetingPoint()),
-                LocationDto.from(event.getDestination())
+                LocationDto.from(event.getDestination()),
+                event.getPictureUrl()
         );
     }
 }

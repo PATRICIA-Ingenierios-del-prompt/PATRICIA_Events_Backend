@@ -28,4 +28,7 @@ public class CreateEventLinkedToParcheRequest {
 
     private LocationDto meetingPoint;
     private LocationDto destination;
+
+    /** Optional. The S3/CDN URL returned after uploading via the presigned POST. */
+    private String pictureUrl;
 }
