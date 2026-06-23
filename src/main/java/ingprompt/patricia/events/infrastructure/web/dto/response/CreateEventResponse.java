@@ -29,4 +29,6 @@ public class CreateEventResponse {
 
     @JsonFormat(pattern = "HH:mm")
     private LocalTime endTime;
+
+    private String pictureUrl;
 }

@@ -19,6 +19,7 @@ import java.util.UUID;
 public class Event {
     public static final Duration MIN_LEAD_TIME = Duration.ofMinutes(30);
     public static final Duration MAX_DURATION = Duration.ofHours(24);
+    public static final Duration TRACKING_LEAD_TIME = Duration.ofMinutes(30);
 
     private UUID eventId;
     private String name;
@@ -38,6 +39,7 @@ public class Event {
     private Location destination;
     private boolean started;
     private boolean finished;
+    private String pictureUrl;
 
     public Event(UUID eventId, String name, String description, Category category, int maxCapacity, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime) {
         this(eventId, name, description, category, maxCapacity, null, ownerId, eventDate, startTime, endTime);

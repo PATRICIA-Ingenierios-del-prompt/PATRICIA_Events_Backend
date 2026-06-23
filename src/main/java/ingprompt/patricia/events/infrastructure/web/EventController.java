@@ -26,13 +26,13 @@ public class EventController {
 
     @PostMapping
     public ResponseEntity<CreateEventResponse> createEvent(@RequestBody CreateEventRequest request, @RequestHeader("X-User-Id") UUID ownerId) {
-        Event newEvent = manageEventCase.createEvent(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime(), toDomain(request.getMeetingPoint()), toDomain(request.getDestination()));
+        Event newEvent = manageEventCase.createEvent(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime(), toDomain(request.getMeetingPoint()), toDomain(request.getDestination()), request.getPictureUrl());
         return ResponseEntity.ok(toCreateResponse(newEvent));
     }
 
     @PostMapping("/linked")
     public ResponseEntity<CreateEventResponse> createEventLinkedToParche(@RequestBody CreateEventLinkedToParcheRequest request, @RequestHeader("X-User-Id") UUID ownerId) {
-        Event newEvent = manageEventCase.createEventLinkedToParche(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), request.getParcheId(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime(), toDomain(request.getMeetingPoint()), toDomain(request.getDestination()));
+        Event newEvent = manageEventCase.createEventLinkedToParche(request.getName(), request.getDescription(), request.getCategory(), request.getMaxCapacity(), request.getParcheId(), ownerId, request.getEventDate(), request.getStartTime(), request.getEndTime(), toDomain(request.getMeetingPoint()), toDomain(request.getDestination()), request.getPictureUrl());
         return ResponseEntity.ok(toCreateResponse(newEvent));
     }
 
@@ -72,7 +72,8 @@ public class EventController {
                 event.getParcheId(),
                 event.getEventDate(),
                 event.getStartTime(),
-                event.getEndTime()
+                event.getEndTime(),
+                event.getPictureUrl()
         );
     }
 }

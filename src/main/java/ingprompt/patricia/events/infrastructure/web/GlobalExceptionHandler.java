@@ -5,6 +5,7 @@ import ingprompt.patricia.events.domain.exception.EventIsFullException;
 import ingprompt.patricia.events.domain.exception.EventNotFoundException;
 import ingprompt.patricia.events.domain.exception.InvalidEventLocationException;
 import ingprompt.patricia.events.domain.exception.InvalidEventScheduleException;
+import ingprompt.patricia.events.domain.exception.InvalidPictureUploadException;
 import ingprompt.patricia.events.domain.exception.NotEventOwnerException;
 import ingprompt.patricia.events.domain.exception.NotEventParticipantException;
 import ingprompt.patricia.events.domain.exception.NotParcheMemberException;
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
-    @ExceptionHandler({InvalidEventScheduleException.class, InvalidEventLocationException.class})
+    @ExceptionHandler({InvalidEventScheduleException.class, InvalidEventLocationException.class, InvalidPictureUploadException.class})
     public ResponseEntity<Map<String, String>> handleBadRequest(RuntimeException ex) {
         return error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
