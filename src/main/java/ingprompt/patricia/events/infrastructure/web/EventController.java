@@ -3,6 +3,8 @@ package ingprompt.patricia.events.infrastructure.web;
 import ingprompt.patricia.events.application.port.in.EventQueryCase;
 import ingprompt.patricia.events.application.port.in.ManageEventCase;
 import ingprompt.patricia.events.application.port.in.ManageUserEventCase;
+import ingprompt.patricia.events.application.port.in.SpecialQueriesFilterCases;
+import ingprompt.patricia.events.domain.enums.Category;
 import ingprompt.patricia.events.domain.model.Event;
 import ingprompt.patricia.events.domain.model.Location;
 import ingprompt.patricia.events.infrastructure.web.dto.LocationDto;
@@ -10,10 +12,15 @@ import ingprompt.patricia.events.infrastructure.web.dto.request.CreateEventLinke
 import ingprompt.patricia.events.infrastructure.web.dto.request.CreateEventRequest;
 import ingprompt.patricia.events.infrastructure.web.dto.response.CreateEventResponse;
 import ingprompt.patricia.events.infrastructure.web.dto.response.EventResponse;
+import ingprompt.patricia.events.infrastructure.web.dto.response.EventSummaryResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -23,6 +30,7 @@ public class EventController {
     private final ManageEventCase manageEventCase;
     private final ManageUserEventCase manageUserEventCase;
     private final EventQueryCase eventQueryCase;
+    private final SpecialQueriesFilterCases serviceFilter;
 
     @PostMapping
     public ResponseEntity<CreateEventResponse> createEvent(@RequestBody CreateEventRequest request, @RequestHeader("X-User-Id") UUID ownerId) {
@@ -57,6 +65,26 @@ public class EventController {
     @GetMapping("/{eventId}")
     public ResponseEntity<EventResponse> getEvent(@PathVariable UUID eventId) {
         return ResponseEntity.ok(EventResponse.from(eventQueryCase.getEventById(eventId)));
+    }
+
+    @GetMapping("/category")
+    public ResponseEntity<Page<EventSummaryResponse>> filterByCategory(@RequestParam Category category, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(serviceFilter.filterByCategory(category, pageable).map(EventSummaryResponse::from));
+    }
+
+    @GetMapping("/name")
+    public ResponseEntity<Page<EventSummaryResponse>> filterByName(@RequestParam String name, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(serviceFilter.findByName(name, pageable).map(EventSummaryResponse::from));
+    }
+
+    @GetMapping("/capacity")
+    public ResponseEntity<Page<EventSummaryResponse>> filterByOpenSlots(@RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(serviceFilter.filterByOpenSlots(pageable).map(EventSummaryResponse::from));
+    }
+
+    @GetMapping("/date")
+    public ResponseEntity<Page<EventSummaryResponse>> filterByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(serviceFilter.filterByDate(date, pageable).map(EventSummaryResponse::from));
     }
 
     private static Location toDomain(LocationDto dto) {
