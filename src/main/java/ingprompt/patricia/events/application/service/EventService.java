@@ -4,6 +4,7 @@ import ingprompt.patricia.events.application.port.in.EventLifecycleCase;
 import ingprompt.patricia.events.application.port.in.EventQueryCase;
 import ingprompt.patricia.events.application.port.in.ManageEventCase;
 import ingprompt.patricia.events.application.port.in.ManageUserEventCase;
+import ingprompt.patricia.events.application.port.in.SpecialQueriesFilterCases;
 import ingprompt.patricia.events.application.port.out.EventPublisherOut;
 import ingprompt.patricia.events.application.port.out.EventRepositoryOutPort;
 import ingprompt.patricia.events.application.port.out.ParcheMembershipRepositoryOutPort;
@@ -14,6 +15,8 @@ import ingprompt.patricia.events.domain.exception.NotParcheMemberException;
 import ingprompt.patricia.events.domain.model.Event;
 import ingprompt.patricia.events.domain.model.Location;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +27,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
-public class EventService implements ManageEventCase, ManageUserEventCase, EventQueryCase, EventLifecycleCase {
+public class EventService implements ManageEventCase, ManageUserEventCase, EventQueryCase, EventLifecycleCase, SpecialQueriesFilterCases {
     private final EventRepositoryOutPort repositoryOutPort;
     private final EventPublisherOut eventPublisher;
     private final ParcheMembershipRepositoryOutPort membershipRepository;
@@ -125,5 +128,29 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     public Event getEventById(UUID eventId) {
         return repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Event> filterByCategory(Category category, Pageable pageable) {
+        return repositoryOutPort.findByCategory(category, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Event> findByName(String name, Pageable pageable) {
+        return repositoryOutPort.findByNameContaining(name, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Event> filterByOpenSlots(Pageable pageable) {
+        return repositoryOutPort.findWithOpenSlots(pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Event> filterByDate(LocalDate date, Pageable pageable) {
+        return repositoryOutPort.findByEventDate(date, pageable);
     }
 }

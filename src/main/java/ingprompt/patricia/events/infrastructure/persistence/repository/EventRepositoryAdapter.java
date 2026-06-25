@@ -1,10 +1,13 @@
 package ingprompt.patricia.events.infrastructure.persistence.repository;
 
 import ingprompt.patricia.events.application.port.out.EventRepositoryOutPort;
+import ingprompt.patricia.events.domain.enums.Category;
 import ingprompt.patricia.events.domain.model.Event;
 import ingprompt.patricia.events.infrastructure.persistence.repository.mapper.EventMapper;
 import ingprompt.patricia.events.infrastructure.persistence.postgre.EventRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -55,5 +58,25 @@ public class EventRepositoryAdapter implements EventRepositoryOutPort {
                 .stream()
                 .map(EventMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Page<Event> findByCategory(Category category, Pageable pageable) {
+        return postgreRepository.findByCategory(category, pageable).map(EventMapper::toDomain);
+    }
+
+    @Override
+    public Page<Event> findByNameContaining(String name, Pageable pageable) {
+        return postgreRepository.findByNameContainingIgnoreCase(name, pageable).map(EventMapper::toDomain);
+    }
+
+    @Override
+    public Page<Event> findWithOpenSlots(Pageable pageable) {
+        return postgreRepository.findWithOpenSlots(pageable).map(EventMapper::toDomain);
+    }
+
+    @Override
+    public Page<Event> findByEventDate(LocalDate date, Pageable pageable) {
+        return postgreRepository.findByEventDate(date, pageable).map(EventMapper::toDomain);
     }
 }
