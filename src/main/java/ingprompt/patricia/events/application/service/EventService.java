@@ -1,6 +1,7 @@
 package ingprompt.patricia.events.application.service;
 
 import ingprompt.patricia.events.application.port.in.EventLifecycleCase;
+import ingprompt.patricia.events.application.port.in.EventMapQueryCase;
 import ingprompt.patricia.events.application.port.in.EventQueryCase;
 import ingprompt.patricia.events.application.port.in.ManageEventCase;
 import ingprompt.patricia.events.application.port.in.ManageUserEventCase;
@@ -23,11 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @AllArgsConstructor
-public class EventService implements ManageEventCase, ManageUserEventCase, EventQueryCase, EventLifecycleCase, SpecialQueriesFilterCases {
+public class EventService implements ManageEventCase, ManageUserEventCase, EventQueryCase, EventLifecycleCase, SpecialQueriesFilterCases, EventMapQueryCase {
     private final EventRepositoryOutPort repositoryOutPort;
     private final EventPublisherOut eventPublisher;
     private final ParcheMembershipRepositoryOutPort membershipRepository;
@@ -81,6 +83,9 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
         if (event.hasParticipant(userId)) {
             return;
+        }
+        if (event.isLinkedToParche() && !membershipRepository.exists(event.getParcheId(), userId)) {
+            throw new NotParcheMemberException(userId, event.getParcheId());
         }
         event.addParticipant(userId);
         repositoryOutPort.save(event);
@@ -144,13 +149,23 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Event> filterByOpenSlots(Pageable pageable) {
-        return repositoryOutPort.findWithOpenSlots(pageable);
+    public Page<Event> filterByDate(LocalDate date, Pageable pageable) {
+        return repositoryOutPort.findByEventDate(date, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Event> filterByDate(LocalDate date, Pageable pageable) {
-        return repositoryOutPort.findByEventDate(date, pageable);
+    public Page<Event> publicOpenEvents(Pageable pageable) {
+        return repositoryOutPort.findPublicOpenEvents(pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Event> myParcheOpenEvents(UUID userId, Pageable pageable) {
+        Set<UUID> parcheIds = membershipRepository.findParcheIdsByUser(userId);
+        if (parcheIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        return repositoryOutPort.findOpenEventsForParches(parcheIds, pageable);
     }
 }

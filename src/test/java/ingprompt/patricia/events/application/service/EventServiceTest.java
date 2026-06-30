@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -291,15 +292,6 @@ class EventServiceTest {
     }
 
     @Test
-    void filterByOpenSlots_delegates() {
-        Pageable pageable = PageRequest.of(0, 20);
-        Page<Event> page = new PageImpl<>(List.of(existingEvent(10)));
-        when(repository.findWithOpenSlots(pageable)).thenReturn(page);
-
-        assertThat(service.filterByOpenSlots(pageable)).isSameAs(page);
-    }
-
-    @Test
     void filterByDate_delegates() {
         Pageable pageable = PageRequest.of(0, 20);
         LocalDate date = tomorrow();
@@ -307,5 +299,74 @@ class EventServiceTest {
         when(repository.findByEventDate(date, pageable)).thenReturn(page);
 
         assertThat(service.filterByDate(date, pageable)).isSameAs(page);
+    }
+
+    // ---- join: parche membership gating (EventMapQueryCase rules) ----
+
+    private Event linkedEvent(UUID parcheId, int maxCapacity) {
+        Event event = new Event(eventId, "Crew hike", "desc", Category.SPORT, maxCapacity, parcheId, ownerId,
+                tomorrow(), LocalTime.of(10, 0), LocalTime.of(12, 0));
+        event.setDestination(destination);
+        return event;
+    }
+
+    @Test
+    void joinEvent_linkedToParche_byMember_succeeds() {
+        UUID parcheId = UUID.randomUUID();
+        UUID joiner = UUID.randomUUID();
+        Event event = linkedEvent(parcheId, 10);
+        when(repository.findById(eventId)).thenReturn(Optional.of(event));
+        when(membershipRepository.exists(parcheId, joiner)).thenReturn(true);
+
+        service.joinEvent(joiner, eventId);
+
+        assertThat(event.hasParticipant(joiner)).isTrue();
+        verify(repository).save(event);
+    }
+
+    @Test
+    void joinEvent_linkedToParche_byNonMember_throws() {
+        UUID parcheId = UUID.randomUUID();
+        UUID outsider = UUID.randomUUID();
+        Event event = linkedEvent(parcheId, 10);
+        when(repository.findById(eventId)).thenReturn(Optional.of(event));
+        when(membershipRepository.exists(parcheId, outsider)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.joinEvent(outsider, eventId))
+                .isInstanceOf(NotParcheMemberException.class);
+        verify(repository, never()).save(any());
+    }
+
+    // ---- EventMapQueryCase ----
+
+    @Test
+    void publicOpenEvents_delegates() {
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Event> page = new PageImpl<>(List.of(existingEvent(10)));
+        when(repository.findPublicOpenEvents(pageable)).thenReturn(page);
+
+        assertThat(service.publicOpenEvents(pageable)).isSameAs(page);
+    }
+
+    @Test
+    void myParcheOpenEvents_withMemberships_queriesThoseParches() {
+        Pageable pageable = PageRequest.of(0, 20);
+        UUID userId = UUID.randomUUID();
+        Set<UUID> parcheIds = Set.of(UUID.randomUUID());
+        Page<Event> page = new PageImpl<>(List.of(existingEvent(10)));
+        when(membershipRepository.findParcheIdsByUser(userId)).thenReturn(parcheIds);
+        when(repository.findOpenEventsForParches(parcheIds, pageable)).thenReturn(page);
+
+        assertThat(service.myParcheOpenEvents(userId, pageable)).isSameAs(page);
+    }
+
+    @Test
+    void myParcheOpenEvents_noMemberships_returnsEmptyWithoutQuerying() {
+        Pageable pageable = PageRequest.of(0, 20);
+        UUID userId = UUID.randomUUID();
+        when(membershipRepository.findParcheIdsByUser(userId)).thenReturn(Set.of());
+
+        assertThat(service.myParcheOpenEvents(userId, pageable).getContent()).isEmpty();
+        verify(repository, never()).findOpenEventsForParches(any(), any());
     }
 }

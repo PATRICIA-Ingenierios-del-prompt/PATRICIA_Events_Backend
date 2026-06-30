@@ -52,6 +52,8 @@ class EventPersistenceIT {
     @Autowired
     private ParcheMembershipRepository membershipRepository;
     @Autowired
+    private ingprompt.patricia.events.infrastructure.persistence.postgre.ParcheVisibilityRepository parcheVisibilityRepository;
+    @Autowired
     private ReportRepository reportRepository;
     @Autowired
     private TestEntityManager entityManager;
@@ -153,16 +155,6 @@ class EventPersistenceIT {
     }
 
     @Test
-    void findWithOpenSlots_excludesFullEvents() {
-        events.save(event("Full", Category.SPORT, LocalDate.now().plusDays(1), 2, 1)); // owner + 1 = 2 = full
-        events.save(event("Open", Category.SPORT, LocalDate.now().plusDays(1), 5, 0)); // owner only
-
-        Page<Event> result = events.findWithOpenSlots(firstPage);
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getName()).isEqualTo("Open");
-    }
-
-    @Test
     void findStartableAndFinishableCandidates_work() {
         events.save(event("Soon", Category.SPORT, LocalDate.now(), 10, 0));
 
@@ -193,6 +185,65 @@ class EventPersistenceIT {
         memberships.deleteAllByParcheId(parcheId);
 
         assertThat(membershipRepository.count()).isZero();
+    }
+
+    // ---- Map queries ----
+
+    private Event linkedEvent(String name, UUID parcheId, int maxCapacity, int extraParticipants) {
+        Event event = new Event(UUID.randomUUID(), name, "desc", Category.SPORT, maxCapacity, parcheId, UUID.randomUUID(),
+                LocalDate.now().plusDays(1), LocalTime.of(10, 0), LocalTime.of(12, 0));
+        event.setDestination(destination);
+        for (int i = 0; i < extraParticipants; i++) {
+            event.addParticipant(UUID.randomUUID());
+        }
+        return event;
+    }
+
+    @Test
+    void findPublicOpenEvents_includesStandaloneAndPublicParche_excludesPrivateFullFinished() {
+        UUID publicParche = UUID.randomUUID();
+        UUID privateParche = UUID.randomUUID();
+        parcheVisibilityRepository.save(new ingprompt.patricia.events.infrastructure.persistence.entity.ParcheVisibilityEntity(publicParche, "PUBLIC"));
+        parcheVisibilityRepository.save(new ingprompt.patricia.events.infrastructure.persistence.entity.ParcheVisibilityEntity(privateParche, "PRIVATE"));
+
+        events.save(event("Standalone", Category.SPORT, LocalDate.now().plusDays(1), 5, 0));    // standalone -> included
+        events.save(linkedEvent("PublicParcheOpen", publicParche, 5, 0));                        // public parche -> included
+        events.save(linkedEvent("PrivateParcheOpen", privateParche, 5, 0));                      // private parche -> excluded
+        events.save(linkedEvent("UnknownParche", UUID.randomUUID(), 5, 0));                      // no visibility row -> excluded
+        events.save(event("Full", Category.SPORT, LocalDate.now().plusDays(1), 1, 0));           // full -> excluded
+        Event finished = event("Finished", Category.SPORT, LocalDate.now().plusDays(1), 5, 0);
+        finished.markFinished();
+        events.save(finished);                                                                   // finished -> excluded
+
+        Page<Event> result = events.findPublicOpenEvents(firstPage);
+
+        assertThat(result.getContent()).extracting(Event::getName)
+                .containsExactlyInAnyOrder("Standalone", "PublicParcheOpen");
+    }
+
+    @Test
+    void findOpenEventsForParches_filtersByParcheSet() {
+        UUID parcheA = UUID.randomUUID();
+        UUID parcheB = UUID.randomUUID();
+        events.save(linkedEvent("AOpen", parcheA, 5, 0));
+        events.save(linkedEvent("BOpen", parcheB, 5, 0));
+        events.save(event("Standalone", Category.SPORT, LocalDate.now().plusDays(1), 5, 0));
+
+        Page<Event> result = events.findOpenEventsForParches(Set.of(parcheA), firstPage);
+
+        assertThat(result.getContent()).extracting(Event::getName).containsExactly("AOpen");
+    }
+
+    @Test
+    void findParcheIdsByUser_returnsUsersParches() {
+        UUID user = UUID.randomUUID();
+        UUID p1 = UUID.randomUUID();
+        UUID p2 = UUID.randomUUID();
+        memberships.save(p1, user);
+        memberships.save(p2, user);
+        memberships.save(UUID.randomUUID(), UUID.randomUUID()); // someone else's membership
+
+        assertThat(memberships.findParcheIdsByUser(user)).containsExactlyInAnyOrder(p1, p2);
     }
 
     // ---- ReportRepositoryAdapter ----

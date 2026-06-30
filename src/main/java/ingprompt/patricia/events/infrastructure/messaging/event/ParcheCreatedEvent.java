@@ -12,4 +12,5 @@ import java.util.UUID;
 public class ParcheCreatedEvent {
     private UUID parcheId;
     private UUID ownerId;
+    private String visibility;
 }

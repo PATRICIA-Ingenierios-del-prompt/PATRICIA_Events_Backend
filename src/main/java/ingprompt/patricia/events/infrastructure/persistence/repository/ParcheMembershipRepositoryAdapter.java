@@ -7,6 +7,8 @@ import ingprompt.patricia.events.infrastructure.persistence.postgre.ParcheMember
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -16,7 +18,6 @@ public class ParcheMembershipRepositoryAdapter implements ParcheMembershipReposi
 
     @Override
     public void save(UUID parcheId, UUID userId) {
-        // save() is upsert: if (parcheId, userId) already exists, it's a no-op overwrite.
         repository.save(new ParcheMembershipEntity(parcheId, userId));
     }
 
@@ -33,5 +34,10 @@ public class ParcheMembershipRepositoryAdapter implements ParcheMembershipReposi
     @Override
     public boolean exists(UUID parcheId, UUID userId) {
         return repository.existsById(new ParcheMembershipId(parcheId, userId));
+    }
+
+    @Override
+    public Set<UUID> findParcheIdsByUser(UUID userId) {
+        return new HashSet<>(repository.findParcheIdsByUserId(userId));
     }
 }
