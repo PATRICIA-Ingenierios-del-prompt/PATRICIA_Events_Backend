@@ -10,6 +10,5 @@ import java.time.LocalDate;
 public interface SpecialQueriesFilterCases {
     Page<Event> filterByCategory(Category category, Pageable pageable);
     Page<Event> findByName(String name, Pageable pageable);
-    Page<Event> filterByOpenSlots(Pageable pageable);
     Page<Event> filterByDate(LocalDate date, Pageable pageable);
 }

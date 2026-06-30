@@ -48,6 +48,8 @@ class EventControllerTest {
     private EventQueryCase eventQueryCase;
     @MockitoBean
     private SpecialQueriesFilterCases filter;
+    @MockitoBean
+    private ingprompt.patricia.events.application.port.in.EventMapQueryCase mapQueryCase;
 
     private final UUID userId = UUID.randomUUID();
     private final UUID eventId = UUID.randomUUID();
@@ -165,18 +167,36 @@ class EventControllerTest {
     }
 
     @Test
-    void filterByOpenSlots_returns200() throws Exception {
-        when(filter.filterByOpenSlots(any())).thenReturn(new PageImpl<>(List.of(sampleEvent())));
-
-        mockMvc.perform(get("/api/events/capacity").header("X-User-Id", userId))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     void filterByDate_returns200() throws Exception {
         when(filter.filterByDate(any(), any())).thenReturn(new PageImpl<>(List.of(sampleEvent())));
 
         mockMvc.perform(get("/api/events/date").param("date", "2026-07-01").header("X-User-Id", userId))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void publicMap_returns200WithSpotsLeft() throws Exception {
+        when(mapQueryCase.publicOpenEvents(any())).thenReturn(new PageImpl<>(List.of(sampleEvent())));
+
+        mockMvc.perform(get("/api/events/map").header("X-User-Id", userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].eventId").value(eventId.toString()))
+                .andExpect(jsonPath("$.content[0].spotsLeft").value(9))   // 10 cap - owner
+                .andExpect(jsonPath("$.content[0].maxCapacity").value(10));
+    }
+
+    @Test
+    void publicMap_withoutHeader_returns400() throws Exception {
+        mockMvc.perform(get("/api/events/map"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void myParchesEvents_returns200() throws Exception {
+        when(mapQueryCase.myParcheOpenEvents(eq(userId), any())).thenReturn(new PageImpl<>(List.of(sampleEvent())));
+
+        mockMvc.perform(get("/api/events/me/parches/events").header("X-User-Id", userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].eventId").value(eventId.toString()));
     }
 }

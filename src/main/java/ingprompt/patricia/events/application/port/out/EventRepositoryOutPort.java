@@ -22,6 +22,8 @@ public interface EventRepositoryOutPort {
 
     Page<Event> findByCategory(Category category, Pageable pageable);
     Page<Event> findByNameContaining(String name, Pageable pageable);
-    Page<Event> findWithOpenSlots(Pageable pageable);
     Page<Event> findByEventDate(LocalDate date, Pageable pageable);
+
+    Page<Event> findPublicOpenEvents(Pageable pageable);
+    Page<Event> findOpenEventsForParches(Collection<UUID> parcheIds, Pageable pageable);
 }

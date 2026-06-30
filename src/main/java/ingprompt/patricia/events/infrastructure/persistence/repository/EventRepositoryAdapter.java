@@ -62,21 +62,26 @@ public class EventRepositoryAdapter implements EventRepositoryOutPort {
 
     @Override
     public Page<Event> findByCategory(Category category, Pageable pageable) {
-        return postgreRepository.findByCategory(category, pageable).map(EventMapper::toDomain);
+        return postgreRepository.findVisibleOpenByCategory(category, pageable).map(EventMapper::toDomain);
     }
 
     @Override
     public Page<Event> findByNameContaining(String name, Pageable pageable) {
-        return postgreRepository.findByNameContainingIgnoreCase(name, pageable).map(EventMapper::toDomain);
-    }
-
-    @Override
-    public Page<Event> findWithOpenSlots(Pageable pageable) {
-        return postgreRepository.findWithOpenSlots(pageable).map(EventMapper::toDomain);
+        return postgreRepository.findVisibleOpenByName(name, pageable).map(EventMapper::toDomain);
     }
 
     @Override
     public Page<Event> findByEventDate(LocalDate date, Pageable pageable) {
-        return postgreRepository.findByEventDate(date, pageable).map(EventMapper::toDomain);
+        return postgreRepository.findVisibleOpenByDate(date, pageable).map(EventMapper::toDomain);
+    }
+
+    @Override
+    public Page<Event> findPublicOpenEvents(Pageable pageable) {
+        return postgreRepository.findPublicOpenEvents(pageable).map(EventMapper::toDomain);
+    }
+
+    @Override
+    public Page<Event> findOpenEventsForParches(Collection<UUID> parcheIds, Pageable pageable) {
+        return postgreRepository.findOpenEventsForParches(parcheIds, pageable).map(EventMapper::toDomain);
     }
 }

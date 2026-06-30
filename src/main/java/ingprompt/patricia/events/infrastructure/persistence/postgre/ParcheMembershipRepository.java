@@ -7,11 +7,14 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ParcheMembershipRepository extends JpaRepository<ParcheMembershipEntity, ParcheMembershipId> {
-
     @Modifying
     @Query("delete from ParcheMembershipEntity m where m.parcheId = :parcheId")
     void deleteAllByParcheId(@Param("parcheId") UUID parcheId);
+
+    @Query("select m.parcheId from ParcheMembershipEntity m where m.userId = :userId")
+    List<UUID> findParcheIdsByUserId(@Param("userId") UUID userId);
 }
