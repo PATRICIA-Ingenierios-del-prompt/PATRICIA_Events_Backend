@@ -28,9 +28,9 @@ class ParcheLifecycleListenerTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void onParcheCreated_seedsOwnerMembership() {
-        listener.onParcheCreated(new ParcheCreatedEvent(parcheId, userId));
-        verify(membershipCase).addMember(parcheId, userId);
+    void onParcheCreated_recordsVisibilityAndSeedsOwner() {
+        listener.onParcheCreated(new ParcheCreatedEvent(parcheId, userId, "PUBLIC"));
+        verify(membershipCase).handleParcheCreated(parcheId, userId, "PUBLIC");
     }
 
     @Test

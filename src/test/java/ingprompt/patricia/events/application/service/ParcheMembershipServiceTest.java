@@ -2,6 +2,7 @@ package ingprompt.patricia.events.application.service;
 
 import ingprompt.patricia.events.application.port.out.EventRepositoryOutPort;
 import ingprompt.patricia.events.application.port.out.ParcheMembershipRepositoryOutPort;
+import ingprompt.patricia.events.application.port.out.ParcheVisibilityRepositoryOutPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +22,8 @@ class ParcheMembershipServiceTest {
     @Mock
     private ParcheMembershipRepositoryOutPort membershipRepository;
     @Mock
+    private ParcheVisibilityRepositoryOutPort visibilityRepository;
+    @Mock
     private EventRepositoryOutPort eventRepository;
 
     @InjectMocks
@@ -28,6 +31,14 @@ class ParcheMembershipServiceTest {
 
     private final UUID parcheId = UUID.randomUUID();
     private final UUID userId = UUID.randomUUID();
+
+    @Test
+    void handleParcheCreated_recordsVisibilityAndSeedsOwner() {
+        service.handleParcheCreated(parcheId, userId, "PUBLIC");
+
+        verify(visibilityRepository).save(parcheId, "PUBLIC");
+        verify(membershipRepository).save(parcheId, userId);
+    }
 
     @Test
     void addMember_persistsMembership() {

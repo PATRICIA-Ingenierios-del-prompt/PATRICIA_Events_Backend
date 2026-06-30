@@ -1,5 +1,6 @@
 package ingprompt.patricia.events.infrastructure.web;
 
+import ingprompt.patricia.events.application.port.in.EventMapQueryCase;
 import ingprompt.patricia.events.application.port.in.EventQueryCase;
 import ingprompt.patricia.events.application.port.in.ManageEventCase;
 import ingprompt.patricia.events.application.port.in.ManageUserEventCase;
@@ -11,8 +12,8 @@ import ingprompt.patricia.events.infrastructure.web.dto.LocationDto;
 import ingprompt.patricia.events.infrastructure.web.dto.request.CreateEventLinkedToParcheRequest;
 import ingprompt.patricia.events.infrastructure.web.dto.request.CreateEventRequest;
 import ingprompt.patricia.events.infrastructure.web.dto.response.CreateEventResponse;
+import ingprompt.patricia.events.infrastructure.web.dto.response.EventMapResponse;
 import ingprompt.patricia.events.infrastructure.web.dto.response.EventResponse;
-import ingprompt.patricia.events.infrastructure.web.dto.response.EventSummaryResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,7 @@ public class EventController {
     private final ManageUserEventCase manageUserEventCase;
     private final EventQueryCase eventQueryCase;
     private final SpecialQueriesFilterCases serviceFilter;
+    private final EventMapQueryCase mapQueryCase;
 
     @PostMapping
     public ResponseEntity<CreateEventResponse> createEvent(@RequestBody CreateEventRequest request, @RequestHeader("X-User-Id") UUID ownerId) {
@@ -67,24 +69,29 @@ public class EventController {
         return ResponseEntity.ok(EventResponse.from(eventQueryCase.getEventById(eventId)));
     }
 
+    @GetMapping("/map")
+    public ResponseEntity<Page<EventMapResponse>> publicMap(@RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(mapQueryCase.publicOpenEvents(pageable).map(EventMapResponse::from));
+    }
+
+    @GetMapping("/me/parches/events")
+    public ResponseEntity<Page<EventMapResponse>> myParchesEvents(@RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(mapQueryCase.myParcheOpenEvents(userId, pageable).map(EventMapResponse::from));
+    }
+
     @GetMapping("/category")
-    public ResponseEntity<Page<EventSummaryResponse>> filterByCategory(@RequestParam Category category, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
-        return ResponseEntity.ok(serviceFilter.filterByCategory(category, pageable).map(EventSummaryResponse::from));
+    public ResponseEntity<Page<EventMapResponse>> filterByCategory(@RequestParam Category category, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(serviceFilter.filterByCategory(category, pageable).map(EventMapResponse::from));
     }
 
     @GetMapping("/name")
-    public ResponseEntity<Page<EventSummaryResponse>> filterByName(@RequestParam String name, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
-        return ResponseEntity.ok(serviceFilter.findByName(name, pageable).map(EventSummaryResponse::from));
-    }
-
-    @GetMapping("/capacity")
-    public ResponseEntity<Page<EventSummaryResponse>> filterByOpenSlots(@RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
-        return ResponseEntity.ok(serviceFilter.filterByOpenSlots(pageable).map(EventSummaryResponse::from));
+    public ResponseEntity<Page<EventMapResponse>> filterByName(@RequestParam String name, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(serviceFilter.findByName(name, pageable).map(EventMapResponse::from));
     }
 
     @GetMapping("/date")
-    public ResponseEntity<Page<EventSummaryResponse>> filterByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
-        return ResponseEntity.ok(serviceFilter.filterByDate(date, pageable).map(EventSummaryResponse::from));
+    public ResponseEntity<Page<EventMapResponse>> filterByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(serviceFilter.filterByDate(date, pageable).map(EventMapResponse::from));
     }
 
     private static Location toDomain(LocationDto dto) {
