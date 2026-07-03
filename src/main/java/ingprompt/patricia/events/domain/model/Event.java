@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +21,9 @@ public class Event {
     public static final Duration MIN_LEAD_TIME = Duration.ofMinutes(30);
     public static final Duration MAX_DURATION = Duration.ofHours(24);
     public static final Duration TRACKING_LEAD_TIME = Duration.ofMinutes(30);
+    /** Platform time zone (Colombia). Durations are computed against this zone so they
+     *  measure true elapsed time rather than an ambiguous wall-clock difference. */
+    public static final ZoneId ZONE = ZoneId.of("America/Bogota");
 
     private UUID eventId;
     private String name;
@@ -68,14 +72,14 @@ public class Event {
             throw new InvalidEventScheduleException("Event date cannot be in the past");
         }
         LocalDateTime startsAt = startsAt();
-        Duration leadTime = Duration.between(createdAt, startsAt);
+        Duration leadTime = Duration.between(createdAt.atZone(ZONE), startsAt.atZone(ZONE));
         if (leadTime.isNegative() || leadTime.compareTo(MIN_LEAD_TIME) < 0) {
             throw new InvalidEventScheduleException("Event must start at least " + MIN_LEAD_TIME.toMinutes() + " minutes after creation");
         }
         if (startTime.equals(endTime)) {
             throw new InvalidEventScheduleException("Start time and end time must differ");
         }
-        Duration duration = Duration.between(startsAt, endsAt());
+        Duration duration = Duration.between(startsAt.atZone(ZONE), endsAt().atZone(ZONE));
         if (duration.compareTo(MAX_DURATION) > 0) {
             throw new InvalidEventScheduleException("Event duration cannot exceed " + MAX_DURATION.toHours() + " hours");
         }
