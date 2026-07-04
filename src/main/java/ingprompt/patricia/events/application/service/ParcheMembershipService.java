@@ -22,8 +22,8 @@ public class ParcheMembershipService implements ParcheMembershipCase {
 
     @Override
     @Transactional
-    public void handleParcheCreated(UUID parcheId, UUID ownerId, String visibility) {
-        visibilityRepository.save(parcheId, visibility);
+    public void handleParcheCreated(UUID parcheId, String name, UUID ownerId, String visibility) {
+        visibilityRepository.save(parcheId, name, visibility);
         membershipRepository.save(parcheId, ownerId);
     }
 

@@ -33,10 +33,10 @@ class ParcheMembershipServiceTest {
     private final UUID userId = UUID.randomUUID();
 
     @Test
-    void handleParcheCreated_recordsVisibilityAndSeedsOwner() {
-        service.handleParcheCreated(parcheId, userId, "PUBLIC");
+    void handleParcheCreated_recordsNameVisibilityAndSeedsOwner() {
+        service.handleParcheCreated(parcheId, "Salsa night", userId, "PUBLIC");
 
-        verify(visibilityRepository).save(parcheId, "PUBLIC");
+        verify(visibilityRepository).save(parcheId, "Salsa night", "PUBLIC");
         verify(membershipRepository).save(parcheId, userId);
     }
 

@@ -203,8 +203,8 @@ class EventPersistenceIT {
     void findPublicOpenEvents_includesStandaloneAndPublicParche_excludesPrivateFullFinished() {
         UUID publicParche = UUID.randomUUID();
         UUID privateParche = UUID.randomUUID();
-        parcheVisibilityRepository.save(new ingprompt.patricia.events.infrastructure.persistence.entity.ParcheVisibilityEntity(publicParche, "PUBLIC"));
-        parcheVisibilityRepository.save(new ingprompt.patricia.events.infrastructure.persistence.entity.ParcheVisibilityEntity(privateParche, "PRIVATE"));
+        parcheVisibilityRepository.save(new ingprompt.patricia.events.infrastructure.persistence.entity.ParcheVisibilityEntity(publicParche, "Public parche", "PUBLIC"));
+        parcheVisibilityRepository.save(new ingprompt.patricia.events.infrastructure.persistence.entity.ParcheVisibilityEntity(privateParche, "Private parche", "PRIVATE"));
 
         events.save(event("Standalone", Category.SPORT, LocalDate.now().plusDays(1), 5, 0));    // standalone -> included
         events.save(linkedEvent("PublicParcheOpen", publicParche, 5, 0));                        // public parche -> included

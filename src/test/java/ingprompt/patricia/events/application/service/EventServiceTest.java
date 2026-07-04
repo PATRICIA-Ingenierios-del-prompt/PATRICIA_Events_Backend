@@ -3,6 +3,7 @@ package ingprompt.patricia.events.application.service;
 import ingprompt.patricia.events.application.port.out.EventPublisherOut;
 import ingprompt.patricia.events.application.port.out.EventRepositoryOutPort;
 import ingprompt.patricia.events.application.port.out.ParcheMembershipRepositoryOutPort;
+import ingprompt.patricia.events.application.port.out.ParcheVisibilityRepositoryOutPort;
 import ingprompt.patricia.events.domain.enums.Category;
 import ingprompt.patricia.events.domain.exception.CannotRemoveOwnerException;
 import ingprompt.patricia.events.domain.exception.EventIsFullException;
@@ -48,6 +49,8 @@ class EventServiceTest {
     private EventPublisherOut publisher;
     @Mock
     private ParcheMembershipRepositoryOutPort membershipRepository;
+    @Mock
+    private ParcheVisibilityRepositoryOutPort visibilityRepository;
 
     @InjectMocks
     private EventService service;
@@ -77,13 +80,15 @@ class EventServiceTest {
     // ---- ManageEventCase ----
 
     @Test
-    void createEvent_valid_savesAndReturns() {
+    void createEvent_valid_savesAndPublishesCreated() {
         Event result = service.createEvent("Hike", "desc", Category.SPORT, 10, ownerId,
                 tomorrow(), LocalTime.of(10, 0), LocalTime.of(12, 0), null, destination, "pic");
 
         assertThat(result.getOwnerId()).isEqualTo(ownerId);
         assertThat(result.getUsersInscribed()).contains(ownerId);
         verify(repository).save(any(Event.class));
+        // A.2 contract: standalone -> event.created with linkedToParche=false.
+        verify(publisher).publishEventCreated(eq(result.getEventId()), eq("Hike"), eq(ownerId), eq(false));
     }
 
     @Test
@@ -102,15 +107,20 @@ class EventServiceTest {
     }
 
     @Test
-    void createEventLinkedToParche_whenMember_savesAndPublishes() {
+    void createEventLinkedToParche_whenMember_savesAndPublishesEnriched() {
         UUID parcheId = UUID.randomUUID();
+        Set<UUID> members = Set.of(ownerId, UUID.randomUUID());
         when(membershipRepository.exists(parcheId, ownerId)).thenReturn(true);
+        when(visibilityRepository.findNameById(parcheId)).thenReturn(Optional.of("Parche 4"));
+        when(membershipRepository.findUserIdsByParcheId(parcheId)).thenReturn(members);
 
         Event result = service.createEventLinkedToParche("Hike", "desc", Category.SPORT, 10, parcheId, ownerId,
                 tomorrow(), LocalTime.of(10, 0), LocalTime.of(12, 0), null, destination, null);
 
         verify(repository).save(any(Event.class));
-        verify(publisher).publishEventLinkedToParche(eq(result.getEventId()), eq(parcheId), eq(ownerId));
+        verify(publisher).publishEventLinkedToParche(eq(result.getEventId()), eq("Hike"), eq(parcheId), eq("Parche 4"), eq(ownerId), eq(members));
+        // A.2 contract: also emits event.created with linkedToParche=true (Notification MS ignores it).
+        verify(publisher).publishEventCreated(eq(result.getEventId()), eq("Hike"), eq(ownerId), eq(true));
     }
 
     @Test

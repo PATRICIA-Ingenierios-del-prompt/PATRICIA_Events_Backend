@@ -17,4 +17,7 @@ public interface ParcheMembershipRepository extends JpaRepository<ParcheMembersh
 
     @Query("select m.parcheId from ParcheMembershipEntity m where m.userId = :userId")
     List<UUID> findParcheIdsByUserId(@Param("userId") UUID userId);
+
+    @Query("select m.userId from ParcheMembershipEntity m where m.parcheId = :parcheId")
+    List<UUID> findUserIdsByParcheId(@Param("parcheId") UUID parcheId);
 }

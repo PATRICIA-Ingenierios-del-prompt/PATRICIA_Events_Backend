@@ -40,4 +40,9 @@ public class ParcheMembershipRepositoryAdapter implements ParcheMembershipReposi
     public Set<UUID> findParcheIdsByUser(UUID userId) {
         return new HashSet<>(repository.findParcheIdsByUserId(userId));
     }
+
+    @Override
+    public Set<UUID> findUserIdsByParcheId(UUID parcheId) {
+        return new HashSet<>(repository.findUserIdsByParcheId(parcheId));
+    }
 }
