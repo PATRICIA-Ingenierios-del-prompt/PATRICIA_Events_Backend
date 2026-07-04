@@ -2,6 +2,7 @@ package ingprompt.patricia.events.infrastructure.messaging.publisher;
 
 import ingprompt.patricia.events.application.port.out.EventPublisherOut;
 import ingprompt.patricia.events.infrastructure.messaging.config.RabbitMQConfig;
+import ingprompt.patricia.events.infrastructure.messaging.event.EventCreatedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventDeletedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventEndedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventLinkedToParcheEvent;
@@ -20,11 +21,20 @@ public class EventPublisherAdapter implements EventPublisherOut {
     private final RabbitTemplate rabbitTemplate;
 
     @Override
-    public void publishEventLinkedToParche(UUID eventId, UUID parcheId, UUID userId) {
+    public void publishEventCreated(UUID eventId, String name, UUID ownerId, boolean linkedToParche) {
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EVENT_EXCHANGE,
+                RabbitMQConfig.EVENT_CREATED_ROUTING_KEY,
+                new EventCreatedEvent(UUID.randomUUID(), eventId, name, ownerId, linkedToParche)
+        );
+    }
+
+    @Override
+    public void publishEventLinkedToParche(UUID eventId, String eventName, UUID parcheId, String parcheName, UUID userId, Set<UUID> memberIds) {
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EVENT_EXCHANGE,
                 RabbitMQConfig.EVENT_LINKED_ROUTING_KEY,
-                new EventLinkedToParcheEvent(eventId, parcheId, userId)
+                new EventLinkedToParcheEvent(UUID.randomUUID(), eventId, eventName, parcheId, parcheName, userId, memberIds)
         );
     }
 

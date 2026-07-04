@@ -9,6 +9,7 @@ import ingprompt.patricia.events.application.port.in.SpecialQueriesFilterCases;
 import ingprompt.patricia.events.application.port.out.EventPublisherOut;
 import ingprompt.patricia.events.application.port.out.EventRepositoryOutPort;
 import ingprompt.patricia.events.application.port.out.ParcheMembershipRepositoryOutPort;
+import ingprompt.patricia.events.application.port.out.ParcheVisibilityRepositoryOutPort;
 import ingprompt.patricia.events.domain.enums.Category;
 import ingprompt.patricia.events.domain.exception.EventNotFoundException;
 import ingprompt.patricia.events.domain.exception.NotEventOwnerException;
@@ -33,6 +34,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     private final EventRepositoryOutPort repositoryOutPort;
     private final EventPublisherOut eventPublisher;
     private final ParcheMembershipRepositoryOutPort membershipRepository;
+    private final ParcheVisibilityRepositoryOutPort visibilityRepository;
 
     @Override
     @Transactional
@@ -44,6 +46,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         event.validateSchedule(LocalDateTime.now());
         event.validateLocations();
         repositoryOutPort.save(event);
+        eventPublisher.publishEventCreated(event.getEventId(), event.getName(), ownerId, false);
         return event;
     }
 
@@ -61,7 +64,13 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         event.validateSchedule(LocalDateTime.now());
         event.validateLocations();
         repositoryOutPort.save(event);
-        eventPublisher.publishEventLinkedToParche(event.getEventId(), parcheId, ownerId);
+
+        String parcheName = visibilityRepository.findNameById(parcheId).orElse("");
+        Set<UUID> memberIds = membershipRepository.findUserIdsByParcheId(parcheId);
+        // userId (creator/linker) is required by Parches MS to authorize the link — the
+        // Notification MS ignores it via Jackson INFERRED type precedence.
+        eventPublisher.publishEventLinkedToParche(event.getEventId(), event.getName(), parcheId, parcheName, ownerId, memberIds);
+        eventPublisher.publishEventCreated(event.getEventId(), event.getName(), ownerId, true);
         return event;
     }
 
