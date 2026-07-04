@@ -17,6 +17,7 @@ public class RabbitMQConfig {
     // ---------- Outbound exchange (owned by this service) ----------
     public static final String EVENT_EXCHANGE = "event.events";
 
+    public static final String EVENT_CREATED_ROUTING_KEY = "event.created";
     public static final String EVENT_LINKED_ROUTING_KEY = "event.linked.to.parche";
     public static final String EVENT_DELETED_ROUTING_KEY = "event.deleted";
     public static final String EVENT_STARTED_ROUTING_KEY = "event.started";

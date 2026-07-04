@@ -10,4 +10,6 @@ public interface ParcheMembershipRepositoryOutPort {
     boolean exists(UUID parcheId, UUID userId);
 
     Set<UUID> findParcheIdsByUser(UUID userId);
+    /** Members of a parche — used to enrich event.linked.to.parche with the recipient set. */
+    Set<UUID> findUserIdsByParcheId(UUID parcheId);
 }

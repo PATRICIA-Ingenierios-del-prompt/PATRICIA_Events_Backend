@@ -22,8 +22,8 @@ public class ParcheLifecycleListener {
 
     @RabbitListener(queues = RabbitMQConfig.PARCHE_CREATED_QUEUE)
     public void onParcheCreated(ParcheCreatedEvent event) {
-        log.info("Seeding parche {} ({}), owner {}", event.getParcheId(), event.getVisibility(), event.getOwnerId());
-        membershipCase.handleParcheCreated(event.getParcheId(), event.getOwnerId(), event.getVisibility());
+        log.info("Seeding parche {} '{}' ({}), owner {}", event.getParcheId(), event.getName(), event.getVisibility(), event.getOwnerId());
+        membershipCase.handleParcheCreated(event.getParcheId(), event.getName(), event.getOwnerId(), event.getVisibility());
     }
 
     @RabbitListener(queues = RabbitMQConfig.PARCHE_MEMBER_JOINED_QUEUE)

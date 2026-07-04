@@ -19,6 +19,8 @@ import java.util.UUID;
 public class ParcheVisibilityEntity {
     @Id
     private UUID parcheId;
+    @Column
+    private String name;
 
     @Column(nullable = false)
     private String visibility;

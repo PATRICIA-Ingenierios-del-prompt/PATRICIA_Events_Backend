@@ -1,6 +1,7 @@
 package ingprompt.patricia.events.infrastructure.messaging.publisher;
 
 import ingprompt.patricia.events.infrastructure.messaging.config.RabbitMQConfig;
+import ingprompt.patricia.events.infrastructure.messaging.event.EventCreatedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventDeletedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventEndedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventLinkedToParcheEvent;
@@ -39,12 +40,32 @@ class EventPublisherAdapterTest {
     }
 
     @Test
-    void publishEventLinkedToParche_sendsEvent() {
-        adapter.publishEventLinkedToParche(eventId, parcheId, userId);
+    void publishEventCreated_sendsEnrichedBroadcast() {
+        adapter.publishEventCreated(eventId, "Hike", userId, false);
+
+        ArgumentCaptor<EventCreatedEvent> body = ArgumentCaptor.forClass(EventCreatedEvent.class);
+        verify(rabbitTemplate).convertAndSend(eq(RabbitMQConfig.EVENT_EXCHANGE), eq(RabbitMQConfig.EVENT_CREATED_ROUTING_KEY), body.capture());
+        assertThat(body.getValue().getEventId()).isEqualTo(eventId);
+        assertThat(body.getValue().getName()).isEqualTo("Hike");
+        assertThat(body.getValue().getOwnerId()).isEqualTo(userId);
+        assertThat(body.getValue().isLinkedToParche()).isFalse();
+        assertThat(body.getValue().getSourceEventId()).isNotNull();
+    }
+
+    @Test
+    void publishEventLinkedToParche_sendsEnrichedEvent() {
+        Set<UUID> members = Set.of(UUID.randomUUID(), userId);
+        adapter.publishEventLinkedToParche(eventId, "Hike", parcheId, "Cálculo III", userId, members);
 
         ArgumentCaptor<EventLinkedToParcheEvent> body = ArgumentCaptor.forClass(EventLinkedToParcheEvent.class);
         verify(rabbitTemplate).convertAndSend(eq(RabbitMQConfig.EVENT_EXCHANGE), eq(RabbitMQConfig.EVENT_LINKED_ROUTING_KEY), body.capture());
+        assertThat(body.getValue().getEventId()).isEqualTo(eventId);
+        assertThat(body.getValue().getEventName()).isEqualTo("Hike");
         assertThat(body.getValue().getParcheId()).isEqualTo(parcheId);
+        assertThat(body.getValue().getParcheName()).isEqualTo("Cálculo III");
+        assertThat(body.getValue().getUserId()).isEqualTo(userId);
+        assertThat(body.getValue().getMemberIds()).isEqualTo(members);
+        assertThat(body.getValue().getSourceEventId()).isNotNull();
     }
 
     @Test

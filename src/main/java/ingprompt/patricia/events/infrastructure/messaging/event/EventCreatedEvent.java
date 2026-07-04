@@ -9,10 +9,10 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ParcheCreatedEvent {
+public class EventCreatedEvent {
     private UUID sourceEventId;
-    private UUID parcheId;
+    private UUID eventId;
     private String name;
-    private String visibility;
     private UUID ownerId;
+    private boolean linkedToParche;
 }

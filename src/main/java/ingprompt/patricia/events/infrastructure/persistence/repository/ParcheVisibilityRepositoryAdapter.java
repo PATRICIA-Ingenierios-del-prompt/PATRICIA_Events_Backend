@@ -6,6 +6,7 @@ import ingprompt.patricia.events.infrastructure.persistence.postgre.ParcheVisibi
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -14,12 +15,17 @@ public class ParcheVisibilityRepositoryAdapter implements ParcheVisibilityReposi
     private final ParcheVisibilityRepository repository;
 
     @Override
-    public void save(UUID parcheId, String visibility) {
-        repository.save(new ParcheVisibilityEntity(parcheId, visibility));
+    public void save(UUID parcheId, String name, String visibility) {
+        repository.save(new ParcheVisibilityEntity(parcheId, name, visibility));
     }
 
     @Override
     public void deleteByParcheId(UUID parcheId) {
         repository.deleteById(parcheId);
+    }
+
+    @Override
+    public Optional<String> findNameById(UUID parcheId) {
+        return repository.findById(parcheId).map(ParcheVisibilityEntity::getName);
     }
 }
