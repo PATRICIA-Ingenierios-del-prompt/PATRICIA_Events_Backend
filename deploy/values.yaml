@@ -1,0 +1,66 @@
+# Defaults for the Events MS chart. The CD job overrides image.repository
+# and image.tag per deploy (pinned to the commit SHA); everything else is
+# edited here and versioned with the code it configures.
+
+image:
+  repository: ""            # set by CD: <account>.dkr.ecr.<region>.amazonaws.com/patricia-dev/events
+  tag: ""                   # set by CD: short commit SHA
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+serviceAccount:
+  # TODO: arn:aws:iam::<account>:role/patricia-dev-events-irsa SI/CUANDO
+  # S3PresignedPostAdapter se reescriba para usar el SDK de AWS con
+  # DefaultCredentialsProvider en vez de firmar SigV4 a mano. Hoy no sirve de
+  # nada poner el role aca -- el codigo pide AWS_ACCESS_KEY_ID/SECRET_ACCESS_KEY
+  # como strings, no puede usar el intercambio de IRSA (web-identity-token).
+  roleArn: ""
+
+config:
+  jpaShowSql: "false"
+  awsS3Region: "us-east-1"
+  awsS3Bucket: "patricia-events-pictures"
+  awsS3Endpoint: ""            # vacio: bucket real de S3, no LocalStack/MinIO
+  awsS3PublicBaseUrl: ""       # vacio: usa la URL directa del objeto S3
+  eventPictureMaxBytes: "5242880"
+  eventPictureUploadExpirySeconds: "300"
+
+# External Secrets Operator: remote keys in AWS Secrets Manager
+# (created by Ulink_Infra module.secrets; prefix = ${project_name}-${environment}).
+externalSecrets:
+  clusterSecretStore: patricia-aws-secrets-manager
+  prefix: "patricia-dev"
+  # NOTE sobre lo que deberia existir en AWS Secrets Manager (confirmar con
+  # `aws secretsmanager list-secrets` antes de aplicar):
+  #   patricia-dev/amazon-mq      -> EXISTE (compartido). Keys nativas
+  #                                  SPRING_RABBITMQ_ADDRESSES/USERNAME/PASSWORD.
+  #   patricia-dev/events/postgres -> Es Neon, no RDS (el free tier de RDS ya
+  #                                  esta copado por users/parche-core/matching
+  #                                  - ver rds_services en variables.tf). El
+  #                                  propio Set-TerraformSecrets.ps1 YA lee
+  #                                  este secret (`aws secretsmanager
+  #                                  get-secret-value --secret-id
+  #                                  patricia-dev/events/postgres`), lo que
+  #                                  sugiere que alguien ya lo creo y ya corrio
+  #                                  terraform apply con el. Confirmalo antes
+  #                                  de asumirlo:
+  #                                  `aws secretsmanager list-secrets | grep events`.
+  #                                  Su forma es SPRING_DATASOURCE_URL/
+  #                                  USERNAME/PASSWORD -- nativa, calza 1:1 con
+  #                                  lo que ya espera application.properties,
+  #                                  sin remapear nada (a diferencia de Matching).
+  #   AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_SESSION_TOKEN -> NO
+  #                                  aplican via ExternalSecret todavia (ver
+  #                                  nota de IRSA arriba). Quedan vacias en el
+  #                                  ConfigMap hasta resolver el problema de
+  #                                  SigV4-a-mano de S3PresignedPostAdapter.
+
+resources:
+  requests: { cpu: 500m, memory: 768Mi }
+  limits:   { cpu: "1",  memory: 1Gi }
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70

@@ -1,0 +1,17 @@
+# Name `events` — el Gateway ya reenvia /api/events/* (confirmado: ya esta en
+# el ordered_cache_behavior de CloudFront en modules/frontend/main.tf), asi
+# que su RouteConfig.java presumiblemente ya apunta a
+# http://events.patricia-app.svc.cluster.local:8087. Confirmar el puerto/host
+# exacto contra RouteConfig.java de Gateway antes de asumirlo.
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+  namespace: patricia-app
+  labels: { app: events }
+spec:
+  type: ClusterIP
+  selector: { app: events }
+  ports:
+    - port: 8087
+      targetPort: 8087
