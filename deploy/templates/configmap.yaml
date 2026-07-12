@@ -1,0 +1,22 @@
+# Non-secret configuration. Postgres (Neon) y RabbitMQ vienen del Secret
+# events-secrets sincronizado por el ExternalSecret (ver externalsecret.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: events-config
+  namespace: patricia-app
+data:
+  JPA_SHOW_SQL: {{ .Values.config.jpaShowSql | quote }}
+  AWS_S3_REGION: {{ .Values.config.awsS3Region | quote }}
+  AWS_S3_BUCKET: {{ .Values.config.awsS3Bucket | quote }}
+  AWS_S3_ENDPOINT: {{ .Values.config.awsS3Endpoint | quote }}
+  AWS_S3_PUBLIC_BASE_URL: {{ .Values.config.awsS3PublicBaseUrl | quote }}
+  EVENT_PICTURE_MAX_BYTES: {{ .Values.config.eventPictureMaxBytes | quote }}
+  EVENT_PICTURE_UPLOAD_EXPIRY_SECONDS: {{ .Values.config.eventPictureUploadExpirySeconds | quote }}
+  # --- PENDIENTE: subida de fotos de evento no funciona hasta resolver el
+  # problema de SigV4-a-mano (ver nota en values.yaml). Se dejan vacias a
+  # proposito -- el codigo ya maneja la ausencia con un error limpio en la
+  # request, no tumba el pod. ---
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
+  AWS_SESSION_TOKEN: ""
