@@ -43,7 +43,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         event.setMeetingPoint(meetingPoint);
         event.setDestination(destination);
         event.setPictureUrl(pictureUrl);
-        event.validateSchedule(LocalDateTime.now());
+        event.validateSchedule(LocalDateTime.now(Event.ZONE));
         event.validateLocations();
         repositoryOutPort.save(event);
         eventPublisher.publishEventCreated(event.getEventId(), event.getName(), ownerId, false);
@@ -61,7 +61,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         event.setMeetingPoint(meetingPoint);
         event.setDestination(destination);
         event.setPictureUrl(pictureUrl);
-        event.validateSchedule(LocalDateTime.now());
+        event.validateSchedule(LocalDateTime.now(Event.ZONE));
         event.validateLocations();
         repositoryOutPort.save(event);
 
@@ -115,7 +115,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     @Transactional
     public void startDueEvents() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(Event.ZONE);
         LocalDateTime trackingHorizon = now.plus(Event.TRACKING_LEAD_TIME);
         for (Event event : repositoryOutPort.findStartableCandidates(trackingHorizon.toLocalDate())) {
             if (!event.isStarted() && !event.startsAt().isAfter(trackingHorizon)) {
@@ -129,7 +129,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     @Transactional
     public void endDueEvents() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(Event.ZONE);
         for (Event event : repositoryOutPort.findFinishableCandidates(now.toLocalDate())) {
             if (!event.isFinished() && !event.endsAt().isAfter(now)) {
                 event.markFinished();
