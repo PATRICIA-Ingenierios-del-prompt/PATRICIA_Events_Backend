@@ -1,4 +1,2 @@
 **PATRICIA**
 # Events Microservice
-
-hola

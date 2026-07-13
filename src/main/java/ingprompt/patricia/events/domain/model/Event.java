@@ -21,8 +21,6 @@ public class Event {
     public static final Duration MIN_LEAD_TIME = Duration.ofMinutes(30);
     public static final Duration MAX_DURATION = Duration.ofHours(24);
     public static final Duration TRACKING_LEAD_TIME = Duration.ofMinutes(30);
-    /** Platform time zone (Colombia). Durations are computed against this zone so they
-     *  measure true elapsed time rather than an ambiguous wall-clock difference. */
     public static final ZoneId ZONE = ZoneId.of("America/Bogota");
 
     private UUID eventId;
