@@ -40,6 +40,12 @@ public interface EventRepository extends JpaRepository<EventEntity, UUID> {
             countQuery = "SELECT COUNT(e) FROM EventEntity e WHERE e.eventDate = :date AND " + PUBLICLY_VISIBLE_OPEN)
     Page<EventEntity> findVisibleOpenByDate(@Param("date") LocalDate date, Pageable pageable);
 
+    // Events the user joined (owner or participant), not finished — started
+    // included: the live-location view needs exactly the started ones.
+    @Query(value = "SELECT e FROM EventEntity e WHERE :userId MEMBER OF e.usersInscribed AND e.finished = false",
+            countQuery = "SELECT COUNT(e) FROM EventEntity e WHERE :userId MEMBER OF e.usersInscribed AND e.finished = false")
+    Page<EventEntity> findJoinedByUser(@Param("userId") UUID userId, Pageable pageable);
+
     // My-parches map: events of the given parches, not finished, with open slots.
     @Query(value = "SELECT e FROM EventEntity e WHERE e.parcheId IN :parcheIds AND e.finished = false AND SIZE(e.usersInscribed) < e.maxCapacity",
             countQuery = "SELECT COUNT(e) FROM EventEntity e WHERE e.parcheId IN :parcheIds AND e.finished = false AND SIZE(e.usersInscribed) < e.maxCapacity")

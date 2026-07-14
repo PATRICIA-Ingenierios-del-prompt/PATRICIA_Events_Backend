@@ -26,4 +26,5 @@ public interface EventRepositoryOutPort {
 
     Page<Event> findPublicOpenEvents(Pageable pageable);
     Page<Event> findOpenEventsForParches(Collection<UUID> parcheIds, Pageable pageable);
+    Page<Event> findJoinedByUser(UUID userId, Pageable pageable);
 }
