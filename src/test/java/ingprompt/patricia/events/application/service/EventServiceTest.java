@@ -167,6 +167,7 @@ class EventServiceTest {
 
         assertThat(event.hasParticipant(joiner)).isTrue();
         verify(repository).save(event);
+        verify(publisher).publishParticipantJoined(eventId, joiner, Category.SPORT);
     }
 
     @Test
@@ -177,6 +178,7 @@ class EventServiceTest {
         service.joinEvent(ownerId, eventId); // owner already inscribed
 
         verify(repository, never()).save(any());
+        verify(publisher, never()).publishParticipantJoined(any(), any(), any());
     }
 
     @Test
@@ -332,6 +334,7 @@ class EventServiceTest {
 
         assertThat(event.hasParticipant(joiner)).isTrue();
         verify(repository).save(event);
+        verify(publisher).publishParticipantJoined(eventId, joiner, Category.SPORT);
     }
 
     @Test
@@ -345,6 +348,7 @@ class EventServiceTest {
         assertThatThrownBy(() -> service.joinEvent(outsider, eventId))
                 .isInstanceOf(NotParcheMemberException.class);
         verify(repository, never()).save(any());
+        verify(publisher, never()).publishParticipantJoined(any(), any(), any());
     }
 
     // ---- EventMapQueryCase ----
