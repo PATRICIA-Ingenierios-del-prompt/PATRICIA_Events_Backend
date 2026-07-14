@@ -8,6 +8,7 @@ import ingprompt.patricia.events.infrastructure.messaging.event.EventEndedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventLinkedToParcheEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventStartedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.IncidentReportedEvent;
+import ingprompt.patricia.events.infrastructure.messaging.event.ParticipantJoinedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -106,5 +107,17 @@ class EventPublisherAdapterTest {
         ArgumentCaptor<IncidentReportedEvent> body = ArgumentCaptor.forClass(IncidentReportedEvent.class);
         verify(rabbitTemplate).convertAndSend(eq(RabbitMQConfig.EVENT_EXCHANGE), eq(RabbitMQConfig.EVENT_INCIDENT_REPORTED_ROUTING_KEY), body.capture());
         assertThat(body.getValue().getReportId()).isEqualTo(reportId);
+    }
+
+    @Test
+    void publishParticipantJoined_sendsEvent() {
+        adapter.publishParticipantJoined(eventId, userId, Category.SPORT);
+
+        ArgumentCaptor<ParticipantJoinedEvent> body = ArgumentCaptor.forClass(ParticipantJoinedEvent.class);
+        verify(rabbitTemplate).convertAndSend(eq(RabbitMQConfig.EVENT_EXCHANGE), eq(RabbitMQConfig.EVENT_PARTICIPANT_JOINED_ROUTING_KEY), body.capture());
+        assertThat(body.getValue().getEventId()).isEqualTo(eventId);
+        assertThat(body.getValue().getUserId()).isEqualTo(userId);
+        assertThat(body.getValue().getCategory()).isEqualTo(Category.SPORT);
+        assertThat(body.getValue().getJoinedAt()).isNotNull();
     }
 }
