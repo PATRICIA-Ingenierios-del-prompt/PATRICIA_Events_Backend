@@ -171,6 +171,11 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
 
     @Override
     @Transactional(readOnly = true)
+    public Page<Event> myJoinedEvents(UUID userId, Pageable pageable) {
+        return repositoryOutPort.findJoinedByUser(userId, pageable);
+    }
+
+    @Override
     public Page<Event> myParcheOpenEvents(UUID userId, Pageable pageable) {
         Set<UUID> parcheIds = membershipRepository.findParcheIdsByUser(userId);
         if (parcheIds.isEmpty()) {

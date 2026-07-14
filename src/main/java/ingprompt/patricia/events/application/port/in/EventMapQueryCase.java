@@ -9,5 +9,7 @@ import java.util.UUID;
 
 public interface EventMapQueryCase {
     Page<Event> publicOpenEvents(Pageable pageable);
+    /** Unfinished events the caller is inscribed in (started included). */
+    Page<Event> myJoinedEvents(UUID userId, Pageable pageable);
     Page<Event> myParcheOpenEvents(UUID userId, Pageable pageable);
 }
