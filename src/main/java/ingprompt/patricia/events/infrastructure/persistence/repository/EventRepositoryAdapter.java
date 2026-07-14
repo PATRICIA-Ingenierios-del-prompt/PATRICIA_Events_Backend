@@ -84,4 +84,9 @@ public class EventRepositoryAdapter implements EventRepositoryOutPort {
     public Page<Event> findOpenEventsForParches(Collection<UUID> parcheIds, Pageable pageable) {
         return postgreRepository.findOpenEventsForParches(parcheIds, pageable).map(EventMapper::toDomain);
     }
+
+    @Override
+    public Page<Event> findJoinedByUser(UUID userId, Pageable pageable) {
+        return postgreRepository.findJoinedByUser(userId, pageable).map(EventMapper::toDomain);
+    }
 }

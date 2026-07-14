@@ -74,6 +74,11 @@ public class EventController {
         return ResponseEntity.ok(mapQueryCase.publicOpenEvents(pageable).map(EventMapResponse::from));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<Page<EventMapResponse>> myJoinedEvents(@RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
+        return ResponseEntity.ok(mapQueryCase.myJoinedEvents(userId, pageable).map(EventMapResponse::from));
+    }
+
     @GetMapping("/me/parches/events")
     public ResponseEntity<Page<EventMapResponse>> myParchesEvents(@RequestHeader("X-User-Id") UUID userId, Pageable pageable) {
         return ResponseEntity.ok(mapQueryCase.myParcheOpenEvents(userId, pageable).map(EventMapResponse::from));
