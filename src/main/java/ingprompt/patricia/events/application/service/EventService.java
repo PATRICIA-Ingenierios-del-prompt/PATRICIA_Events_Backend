@@ -46,7 +46,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         event.validateSchedule(LocalDateTime.now(Event.ZONE));
         event.validateLocations();
         repositoryOutPort.save(event);
-        eventPublisher.publishEventCreated(event.getEventId(), event.getName(), ownerId, false);
+        eventPublisher.publishEventCreated(event.getEventId(), event.getName(), ownerId, false, event.getCategory());
         return event;
     }
 
@@ -70,7 +70,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         // userId (creator/linker) is required by Parches MS to authorize the link — the
         // Notification MS ignores it via Jackson INFERRED type precedence.
         eventPublisher.publishEventLinkedToParche(event.getEventId(), event.getName(), parcheId, parcheName, ownerId, memberIds);
-        eventPublisher.publishEventCreated(event.getEventId(), event.getName(), ownerId, true);
+        eventPublisher.publishEventCreated(event.getEventId(), event.getName(), ownerId, true, event.getCategory());
         return event;
     }
 
@@ -98,6 +98,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         }
         event.addParticipant(userId);
         repositoryOutPort.save(event);
+        eventPublisher.publishParticipantJoined(eventId, userId, event.getCategory());
     }
 
     @Override

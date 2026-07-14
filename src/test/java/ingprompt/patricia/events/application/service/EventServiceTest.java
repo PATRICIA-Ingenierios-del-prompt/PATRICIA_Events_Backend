@@ -88,7 +88,7 @@ class EventServiceTest {
         assertThat(result.getUsersInscribed()).contains(ownerId);
         verify(repository).save(any(Event.class));
         // A.2 contract: standalone -> event.created with linkedToParche=false.
-        verify(publisher).publishEventCreated(eq(result.getEventId()), eq("Hike"), eq(ownerId), eq(false));
+        verify(publisher).publishEventCreated(eq(result.getEventId()), eq("Hike"), eq(ownerId), eq(false), eq(Category.SPORT));
     }
 
     @Test
@@ -120,7 +120,7 @@ class EventServiceTest {
         verify(repository).save(any(Event.class));
         verify(publisher).publishEventLinkedToParche(eq(result.getEventId()), eq("Hike"), eq(parcheId), eq("Parche 4"), eq(ownerId), eq(members));
         // A.2 contract: also emits event.created with linkedToParche=true (Notification MS ignores it).
-        verify(publisher).publishEventCreated(eq(result.getEventId()), eq("Hike"), eq(ownerId), eq(true));
+        verify(publisher).publishEventCreated(eq(result.getEventId()), eq("Hike"), eq(ownerId), eq(true), eq(Category.SPORT));
     }
 
     @Test

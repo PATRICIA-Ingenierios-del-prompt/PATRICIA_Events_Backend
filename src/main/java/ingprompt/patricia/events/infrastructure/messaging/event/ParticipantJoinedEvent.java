@@ -5,16 +5,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+/** Outbound: a user joined an existing event — consumed by the achievements/album feature. */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventCreatedEvent {
-    private UUID sourceEventId;
+public class ParticipantJoinedEvent {
     private UUID eventId;
-    private String name;
-    private UUID ownerId;
-    private boolean linkedToParche;
+    private UUID userId;
     private Category category;
+    private LocalDateTime joinedAt;
 }

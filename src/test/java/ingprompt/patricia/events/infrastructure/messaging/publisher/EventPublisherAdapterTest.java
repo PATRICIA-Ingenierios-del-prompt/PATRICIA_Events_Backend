@@ -1,5 +1,6 @@
 package ingprompt.patricia.events.infrastructure.messaging.publisher;
 
+import ingprompt.patricia.events.domain.enums.Category;
 import ingprompt.patricia.events.infrastructure.messaging.config.RabbitMQConfig;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventCreatedEvent;
 import ingprompt.patricia.events.infrastructure.messaging.event.EventDeletedEvent;
@@ -41,7 +42,7 @@ class EventPublisherAdapterTest {
 
     @Test
     void publishEventCreated_sendsEnrichedBroadcast() {
-        adapter.publishEventCreated(eventId, "Hike", userId, false);
+        adapter.publishEventCreated(eventId, "Hike", userId, false, Category.SPORT);
 
         ArgumentCaptor<EventCreatedEvent> body = ArgumentCaptor.forClass(EventCreatedEvent.class);
         verify(rabbitTemplate).convertAndSend(eq(RabbitMQConfig.EVENT_EXCHANGE), eq(RabbitMQConfig.EVENT_CREATED_ROUTING_KEY), body.capture());
@@ -49,6 +50,7 @@ class EventPublisherAdapterTest {
         assertThat(body.getValue().getName()).isEqualTo("Hike");
         assertThat(body.getValue().getOwnerId()).isEqualTo(userId);
         assertThat(body.getValue().isLinkedToParche()).isFalse();
+        assertThat(body.getValue().getCategory()).isEqualTo(Category.SPORT);
         assertThat(body.getValue().getSourceEventId()).isNotNull();
     }
 
