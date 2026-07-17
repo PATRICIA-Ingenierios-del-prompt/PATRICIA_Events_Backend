@@ -155,6 +155,15 @@ class EventServiceTest {
         verify(repository, never()).delete(any());
     }
 
+    @Test
+    void deleteEvent_whenMissing_throws() {
+        when(repository.findById(eventId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.deleteEvent(eventId, ownerId))
+                .isInstanceOf(EventNotFoundException.class);
+        verify(repository, never()).delete(any());
+    }
+
     // ---- ManageUserEventCase ----
 
     @Test
@@ -188,6 +197,24 @@ class EventServiceTest {
 
         assertThatThrownBy(() -> service.joinEvent(UUID.randomUUID(), eventId))
                 .isInstanceOf(EventIsFullException.class);
+    }
+
+    @Test
+    void joinEvent_whenMissing_throws() {
+        when(repository.findById(eventId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.joinEvent(UUID.randomUUID(), eventId))
+                .isInstanceOf(EventNotFoundException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void removeUser_whenMissing_throws() {
+        when(repository.findById(eventId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.removeUserFromEvent(UUID.randomUUID(), eventId, ownerId))
+                .isInstanceOf(EventNotFoundException.class);
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -360,6 +387,16 @@ class EventServiceTest {
         when(repository.findPublicOpenEvents(pageable)).thenReturn(page);
 
         assertThat(service.publicOpenEvents(pageable)).isSameAs(page);
+    }
+
+    @Test
+    void myJoinedEvents_delegates() {
+        Pageable pageable = PageRequest.of(0, 20);
+        UUID userId = UUID.randomUUID();
+        Page<Event> page = new PageImpl<>(List.of(existingEvent(10)));
+        when(repository.findJoinedByUser(userId, pageable)).thenReturn(page);
+
+        assertThat(service.myJoinedEvents(userId, pageable)).isSameAs(page);
     }
 
     @Test
