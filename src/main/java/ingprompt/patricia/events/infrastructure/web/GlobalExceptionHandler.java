@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -31,6 +32,10 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    // Clave del campo de error en la respuesta JSON — extraída para evitar
+    // duplicación del literal (regla Sonar java:S1192).
+    private static final String ERROR_KEY = "error";
 
     // ── Dominio ──────────────────────────────────────────────────────────────
 
@@ -57,9 +62,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     // ── JSON mal formado (fecha/hora con formato incorrecto en el body) ───────
 
     @Override
+    @NonNull
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
-            HttpMessageNotReadableException ex, HttpHeaders headers,
-            HttpStatusCode status, WebRequest request) {
+            @NonNull HttpMessageNotReadableException ex,
+            @NonNull HttpHeaders headers,
+            @NonNull HttpStatusCode status,
+            @NonNull WebRequest request) {
 
         Throwable cause = ex.getCause();
         if (cause instanceof InvalidFormatException ife) {
@@ -67,21 +75,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             if (targetType != null) {
                 if (LocalDate.class.isAssignableFrom(targetType)) {
                     return ResponseEntity.badRequest().body(
-                        Map.of("error", "El formato de fecha no es válido. Usa el formato yyyy-MM-dd (ej. 2025-07-20)."));
+                        Map.of(ERROR_KEY, "El formato de fecha no es válido. Usa el formato yyyy-MM-dd (ej. 2025-07-20)."));
                 }
                 if (LocalTime.class.isAssignableFrom(targetType)) {
                     return ResponseEntity.badRequest().body(
-                        Map.of("error", "El formato de hora no es válido. Usa el formato HH:mm (ej. 14:30)."));
+                        Map.of(ERROR_KEY, "El formato de hora no es válido. Usa el formato HH:mm (ej. 14:30)."));
                 }
             }
         }
         return ResponseEntity.badRequest().body(
-            Map.of("error", "El cuerpo de la solicitud tiene un formato incorrecto. Revisa los datos e intenta de nuevo."));
+            Map.of(ERROR_KEY, "El cuerpo de la solicitud tiene un formato incorrecto. Revisa los datos e intenta de nuevo."));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
-        return ResponseEntity.status(status).body(Map.of("error", message));
+        return ResponseEntity.status(status).body(Map.of(ERROR_KEY, message));
     }
 }

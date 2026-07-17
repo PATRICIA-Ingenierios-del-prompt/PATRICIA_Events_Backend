@@ -27,7 +27,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleNotFound_returns404WithMessage() {
-        ResponseEntity<Map<String, String>> response = handler.handleNotFound(new EventNotFoundException(eventId));
+        ResponseEntity<Map<String, String>> response = handler.handleNotFound(new EventNotFoundException());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).containsKey("error");
@@ -35,19 +35,19 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleForbidden_returns403() {
-        assertThat(handler.handleForbidden(new NotEventOwnerException(userId, eventId)).getStatusCode())
+        assertThat(handler.handleForbidden(new NotEventOwnerException()).getStatusCode())
                 .isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(handler.handleForbidden(new NotParcheMemberException(userId, eventId)).getStatusCode())
+        assertThat(handler.handleForbidden(new NotParcheMemberException()).getStatusCode())
                 .isEqualTo(HttpStatus.FORBIDDEN);
-        assertThat(handler.handleForbidden(new NotEventParticipantException(userId, eventId)).getStatusCode())
+        assertThat(handler.handleForbidden(new NotEventParticipantException()).getStatusCode())
                 .isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     void handleConflict_returns409() {
-        assertThat(handler.handleConflict(new EventIsFullException(eventId)).getStatusCode())
+        assertThat(handler.handleConflict(new EventIsFullException()).getStatusCode())
                 .isEqualTo(HttpStatus.CONFLICT);
-        assertThat(handler.handleConflict(new CannotRemoveOwnerException(userId, eventId)).getStatusCode())
+        assertThat(handler.handleConflict(new CannotRemoveOwnerException()).getStatusCode())
                 .isEqualTo(HttpStatus.CONFLICT);
     }
 

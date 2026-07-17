@@ -118,12 +118,12 @@ public class Event {
 
     public void addParticipant(UUID participantId) {
         if (hasParticipant(participantId)) return;
-        if (isFull()) throw new EventIsFullException(this.eventId);
+        if (isFull()) throw new EventIsFullException();
         usersInscribed.add(participantId);
     }
 
     public void removeParticipant(UUID participantId) {
-        if (isOwnedBy(participantId)) throw new CannotRemoveOwnerException(participantId, this.eventId);
+        if (isOwnedBy(participantId)) throw new CannotRemoveOwnerException();
         usersInscribed.remove(participantId);
     }
 

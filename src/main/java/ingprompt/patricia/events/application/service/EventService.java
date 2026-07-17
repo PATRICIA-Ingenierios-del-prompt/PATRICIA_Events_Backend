@@ -54,7 +54,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Transactional
     public Event createEventLinkedToParche(String name, String description, Category category, int maxCapacity, UUID parcheId, UUID ownerId, LocalDate eventDate, LocalTime startTime, LocalTime endTime, Location meetingPoint, Location destination, String pictureUrl) {
         if (!membershipRepository.exists(parcheId, ownerId)) {
-            throw new NotParcheMemberException(ownerId, parcheId);
+            throw new NotParcheMemberException();
         }
 
         Event event = new Event(UUID.randomUUID(), name, description, category, maxCapacity, parcheId, ownerId, eventDate, startTime, endTime);
@@ -77,9 +77,9 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     @Transactional
     public void deleteEvent(UUID eventId, UUID ownerId) {
-        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException());
         if (!event.isOwnedBy(ownerId)) {
-            throw new NotEventOwnerException(ownerId, eventId);
+            throw new NotEventOwnerException();
         }
         UUID parcheId = event.getParcheId();
         repositoryOutPort.delete(event);
@@ -89,12 +89,12 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     @Transactional
     public void joinEvent(UUID userId, UUID eventId) {
-        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException());
         if (event.hasParticipant(userId)) {
             return;
         }
         if (event.isLinkedToParche() && !membershipRepository.exists(event.getParcheId(), userId)) {
-            throw new NotParcheMemberException(userId, event.getParcheId());
+            throw new NotParcheMemberException();
         }
         event.addParticipant(userId);
         repositoryOutPort.save(event);
@@ -104,10 +104,10 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     @Transactional
     public void removeUserFromEvent(UUID userId, UUID eventId, UUID requesterId) {
-        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException());
         boolean selfLeave = userId.equals(requesterId);
         if (!selfLeave && !event.isOwnedBy(requesterId)) {
-            throw new NotEventOwnerException(requesterId, eventId);
+            throw new NotEventOwnerException();
         }
         event.removeParticipant(userId);
         repositoryOutPort.save(event);
@@ -142,7 +142,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
 
     @Override
     public Event getEventById(UUID eventId) {
-        return repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException(eventId));
+        return repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException());
     }
 
     @Override

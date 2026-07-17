@@ -165,7 +165,7 @@ class EventControllerTest {
 
     @Test
     void getEvent_whenMissing_returns404() throws Exception {
-        when(eventQueryCase.getEventById(eventId)).thenThrow(new EventNotFoundException(eventId));
+        when(eventQueryCase.getEventById(eventId)).thenThrow(new EventNotFoundException());
 
         mockMvc.perform(get("/api/events/{id}", eventId))
                 .andExpect(status().isNotFound())
