@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public class EventNotFoundException extends RuntimeException {
     public EventNotFoundException(UUID eventId) {
-        super("Event "+eventId+" not found");
+        super("No se encontró el evento. Puede que haya sido eliminado.");
     }
 }

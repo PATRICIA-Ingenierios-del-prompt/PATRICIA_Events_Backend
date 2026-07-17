@@ -64,31 +64,38 @@ public class Event {
 
     public void validateSchedule(LocalDateTime createdAt) {
         if (eventDate == null || startTime == null || endTime == null) {
-            throw new InvalidEventScheduleException("Event date, start time and end time are required");
+            throw new InvalidEventScheduleException("La fecha y las horas de inicio y fin son obligatorias.");
         }
         if (eventDate.isBefore(createdAt.toLocalDate())) {
-            throw new InvalidEventScheduleException("Event date cannot be in the past");
+            throw new InvalidEventScheduleException(
+                "La fecha del evento (" + eventDate + ") ya pasó. Elige una fecha a partir de hoy."
+            );
         }
         LocalDateTime startsAt = startsAt();
         Duration leadTime = Duration.between(createdAt.atZone(ZONE), startsAt.atZone(ZONE));
         if (leadTime.isNegative() || leadTime.compareTo(MIN_LEAD_TIME) < 0) {
-            throw new InvalidEventScheduleException("Event must start at least " + MIN_LEAD_TIME.toMinutes() + " minutes after creation");
+            throw new InvalidEventScheduleException(
+                "El evento debe crearse con al menos " + MIN_LEAD_TIME.toMinutes() +
+                " minutos de anticipación. Elige una hora de inicio más tarde."
+            );
         }
         if (startTime.equals(endTime)) {
-            throw new InvalidEventScheduleException("Start time and end time must differ");
+            throw new InvalidEventScheduleException("La hora de inicio y la hora de fin no pueden ser iguales.");
         }
         Duration duration = Duration.between(startsAt.atZone(ZONE), endsAt().atZone(ZONE));
         if (duration.compareTo(MAX_DURATION) > 0) {
-            throw new InvalidEventScheduleException("Event duration cannot exceed " + MAX_DURATION.toHours() + " hours");
+            throw new InvalidEventScheduleException(
+                "La duración del evento no puede superar " + MAX_DURATION.toHours() + " horas."
+            );
         }
     }
 
     public void validateLocations() {
         if (destination == null || !destination.isComplete()) {
-            throw new InvalidEventLocationException("A valid destination is required");
+            throw new InvalidEventLocationException("El destino del evento es obligatorio y debe tener coordenadas válidas.");
         }
         if (meetingPoint != null && !meetingPoint.isComplete()) {
-            throw new InvalidEventLocationException("Meeting point is present but its coordinates are invalid");
+            throw new InvalidEventLocationException("El punto de encuentro tiene coordenadas inválidas. Márcalo de nuevo en el mapa.");
         }
     }
 

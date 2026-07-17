@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public class NotParcheMemberException extends RuntimeException {
     public NotParcheMemberException(UUID userId, UUID parcheId) {
-        super("User " + userId + " is not a member of parche " + parcheId);
+        super("No eres miembro de este parche.");
     }
 }

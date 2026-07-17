@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public class EventIsFullException extends RuntimeException {
     public EventIsFullException(UUID eventId) {
-        super("Event "+ eventId + "is full");
+        super("El evento ya no tiene cupos disponibles.");
     }
 }
