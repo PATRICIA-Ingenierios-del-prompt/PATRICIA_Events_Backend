@@ -56,6 +56,35 @@ class S3PresignedPostAdapterTest {
     }
 
     @Test
+    void generateImageUpload_webpMapsToWebpExtension() {
+        S3PresignedPostAdapter adapter = adapter("AKIATEST", "secret", "", "", "");
+
+        PresignedUpload upload = adapter.generateImageUpload("image/webp", MAX_BYTES);
+
+        assertThat(upload.objectKey()).endsWith(".webp");
+    }
+
+    @Test
+    void generateImageUpload_unknownContentTypeFallsBackToBin() {
+        S3PresignedPostAdapter adapter = adapter("AKIATEST", "secret", "", "", "");
+
+        PresignedUpload upload = adapter.generateImageUpload("application/octet-stream", MAX_BYTES);
+
+        assertThat(upload.objectKey()).endsWith(".bin");
+    }
+
+    @Test
+    void generateImageUpload_endpointWithoutTrailingSlash_isUsedAsIs() {
+        S3PresignedPostAdapter adapter = adapter("AKIATEST", "secret", "",
+                "http://localhost:4566", "https://cdn.patricia.app");
+
+        PresignedUpload upload = adapter.generateImageUpload("image/png", MAX_BYTES);
+
+        assertThat(upload.uploadUrl()).isEqualTo("http://localhost:4566/patricia-events");
+        assertThat(upload.publicUrl()).startsWith("https://cdn.patricia.app/events/pictures/");
+    }
+
+    @Test
     void generateImageUpload_withoutCredentials_throws() {
         S3PresignedPostAdapter adapter = adapter("", "", "", "", "");
 

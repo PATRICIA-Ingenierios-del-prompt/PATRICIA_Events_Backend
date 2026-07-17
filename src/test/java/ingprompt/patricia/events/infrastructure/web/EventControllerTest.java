@@ -92,6 +92,35 @@ class EventControllerTest {
     }
 
     @Test
+    void createEvent_withLocations_mapsDtosToDomain() throws Exception {
+        when(manageEventCase.createEvent(any(), any(), any(), any(int.class), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(sampleEvent());
+
+        CreateEventRequest request = createRequest();
+        request.setMeetingPoint(new ingprompt.patricia.events.infrastructure.web.dto.LocationDto(4.6, -74.0, "Meeting", "m-1"));
+        request.setDestination(new ingprompt.patricia.events.infrastructure.web.dto.LocationDto(4.7, -74.1, "Dest", "d-1"));
+
+        mockMvc.perform(post("/api/events")
+                        .header("X-User-Id", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        verify(manageEventCase).createEvent(any(), any(), any(), any(int.class), any(), any(), any(), any(),
+                any(ingprompt.patricia.events.domain.model.Location.class),
+                any(ingprompt.patricia.events.domain.model.Location.class), any());
+    }
+
+    @Test
+    void myJoinedEvents_returns200() throws Exception {
+        when(mapQueryCase.myJoinedEvents(eq(userId), any())).thenReturn(new PageImpl<>(List.of(sampleEvent())));
+
+        mockMvc.perform(get("/api/events/me").header("X-User-Id", userId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].eventId").value(eventId.toString()));
+    }
+
+    @Test
     void createEventLinked_returns200() throws Exception {
         when(manageEventCase.createEventLinkedToParche(any(), any(), any(), any(int.class), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(sampleEvent());
