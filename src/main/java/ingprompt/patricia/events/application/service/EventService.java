@@ -77,7 +77,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     @Transactional
     public void deleteEvent(UUID eventId, UUID ownerId) {
-        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException());
+        Event event = repositoryOutPort.findById(eventId).orElseThrow(EventNotFoundException::new);
         if (!event.isOwnedBy(ownerId)) {
             throw new NotEventOwnerException();
         }
@@ -89,7 +89,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     @Transactional
     public void joinEvent(UUID userId, UUID eventId) {
-        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException());
+        Event event = repositoryOutPort.findById(eventId).orElseThrow(EventNotFoundException::new);
         if (event.hasParticipant(userId)) {
             return;
         }
@@ -104,7 +104,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
     @Override
     @Transactional
     public void removeUserFromEvent(UUID userId, UUID eventId, UUID requesterId) {
-        Event event = repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException());
+        Event event = repositoryOutPort.findById(eventId).orElseThrow(EventNotFoundException::new);
         boolean selfLeave = userId.equals(requesterId);
         if (!selfLeave && !event.isOwnedBy(requesterId)) {
             throw new NotEventOwnerException();
@@ -142,7 +142,7 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
 
     @Override
     public Event getEventById(UUID eventId) {
-        return repositoryOutPort.findById(eventId).orElseThrow(() -> new EventNotFoundException());
+        return repositoryOutPort.findById(eventId).orElseThrow(EventNotFoundException::new);
     }
 
     @Override

@@ -25,7 +25,7 @@ public class ReportService implements ManageReportCase {
     @Override
     @Transactional
     public Report createReport(UUID eventId, UUID reporterId, ReportType reportType, String description) {
-        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException());
+        Event event = eventRepository.findById(eventId).orElseThrow(EventNotFoundException::new);
         if (!event.hasParticipant(reporterId)) {
             throw new NotEventParticipantException();
         }

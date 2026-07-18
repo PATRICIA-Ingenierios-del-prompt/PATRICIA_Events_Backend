@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -61,8 +62,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     // ── JSON mal formado (fecha/hora con formato incorrecto en el body) ───────
 
+    // @Nullable en el retorno coincide con la firma del padre en Spring 6/Boot 3
+    // (el paquete está anotado con @NonNullApi, pero el método padre declara
+    // @Nullable en el retorno; aquí lo honramos explícitamente para Sonar).
     @Override
-    @NonNull
+    @Nullable
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
             @NonNull HttpMessageNotReadableException ex,
             @NonNull HttpHeaders headers,
