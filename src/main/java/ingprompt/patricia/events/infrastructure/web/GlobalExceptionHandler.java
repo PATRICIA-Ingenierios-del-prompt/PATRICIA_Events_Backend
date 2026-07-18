@@ -2,6 +2,7 @@ package ingprompt.patricia.events.infrastructure.web;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import ingprompt.patricia.events.domain.exception.CannotRemoveOwnerException;
+import ingprompt.patricia.events.domain.exception.EventAlreadyFinishedException;
 import ingprompt.patricia.events.domain.exception.EventIsFullException;
 import ingprompt.patricia.events.domain.exception.EventNotFoundException;
 import ingprompt.patricia.events.domain.exception.InvalidEventLocationException;
@@ -50,7 +51,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return error(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
-    @ExceptionHandler({EventIsFullException.class, CannotRemoveOwnerException.class})
+    @ExceptionHandler({EventIsFullException.class, CannotRemoveOwnerException.class, EventAlreadyFinishedException.class})
     public ResponseEntity<Map<String, String>> handleConflict(RuntimeException ex) {
         return error(HttpStatus.CONFLICT, ex.getMessage());
     }

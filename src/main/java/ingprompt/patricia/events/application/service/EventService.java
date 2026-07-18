@@ -11,6 +11,7 @@ import ingprompt.patricia.events.application.port.out.EventRepositoryOutPort;
 import ingprompt.patricia.events.application.port.out.ParcheMembershipRepositoryOutPort;
 import ingprompt.patricia.events.application.port.out.ParcheVisibilityRepositoryOutPort;
 import ingprompt.patricia.events.domain.enums.Category;
+import ingprompt.patricia.events.domain.exception.EventAlreadyFinishedException;
 import ingprompt.patricia.events.domain.exception.EventNotFoundException;
 import ingprompt.patricia.events.domain.exception.NotEventOwnerException;
 import ingprompt.patricia.events.domain.exception.NotParcheMemberException;
@@ -92,6 +93,12 @@ public class EventService implements ManageEventCase, ManageUserEventCase, Event
         Event event = repositoryOutPort.findById(eventId).orElseThrow(EventNotFoundException::new);
         if (event.hasParticipant(userId)) {
             return;
+        }
+        // Eventos ya iniciados SÍ aceptan inscripciones (con cupo); solo los
+        // finalizados quedan cerrados. Los listados ocultan los finalizados,
+        // pero un POST directo llegaba igual — este es el guard real.
+        if (event.isFinished()) {
+            throw new EventAlreadyFinishedException();
         }
         if (event.isLinkedToParche() && !membershipRepository.exists(event.getParcheId(), userId)) {
             throw new NotParcheMemberException();

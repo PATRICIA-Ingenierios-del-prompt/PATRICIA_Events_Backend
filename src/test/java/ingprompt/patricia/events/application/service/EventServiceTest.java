@@ -6,6 +6,7 @@ import ingprompt.patricia.events.application.port.out.ParcheMembershipRepository
 import ingprompt.patricia.events.application.port.out.ParcheVisibilityRepositoryOutPort;
 import ingprompt.patricia.events.domain.enums.Category;
 import ingprompt.patricia.events.domain.exception.CannotRemoveOwnerException;
+import ingprompt.patricia.events.domain.exception.EventAlreadyFinishedException;
 import ingprompt.patricia.events.domain.exception.EventIsFullException;
 import ingprompt.patricia.events.domain.exception.EventNotFoundException;
 import ingprompt.patricia.events.domain.exception.InvalidEventLocationException;
@@ -197,6 +198,34 @@ class EventServiceTest {
 
         assertThatThrownBy(() -> service.joinEvent(UUID.randomUUID(), eventId))
                 .isInstanceOf(EventIsFullException.class);
+    }
+
+    @Test
+    void joinEvent_whenFinished_throws() {
+        Event event = existingEvent(10);
+        event.markFinished();
+        when(repository.findById(eventId)).thenReturn(Optional.of(event));
+
+        assertThatThrownBy(() -> service.joinEvent(UUID.randomUUID(), eventId))
+                .isInstanceOf(EventAlreadyFinishedException.class);
+        verify(repository, never()).save(any());
+        verify(publisher, never()).publishParticipantJoined(any(), any(), any());
+    }
+
+    @Test
+    void joinEvent_whenStartedButNotFinished_addsParticipant() {
+        // Regla de producto: un evento ya iniciado sigue aceptando inscripciones
+        // mientras tenga cupo — solo `finished` cierra el evento.
+        Event event = existingEvent(10);
+        event.markStarted();
+        when(repository.findById(eventId)).thenReturn(Optional.of(event));
+        UUID joiner = UUID.randomUUID();
+
+        service.joinEvent(joiner, eventId);
+
+        assertThat(event.hasParticipant(joiner)).isTrue();
+        verify(repository).save(event);
+        verify(publisher).publishParticipantJoined(eventId, joiner, Category.SPORT);
     }
 
     @Test
