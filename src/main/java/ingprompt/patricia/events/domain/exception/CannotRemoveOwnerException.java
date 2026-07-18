@@ -1,9 +1,7 @@
 package ingprompt.patricia.events.domain.exception;
 
-import java.util.UUID;
-
 public class CannotRemoveOwnerException extends RuntimeException {
-    public CannotRemoveOwnerException(UUID userId, UUID eventId) {
-        super("Cannot remove user: "+userId+" from event "+eventId+" because that's it's owner");
+    public CannotRemoveOwnerException() {
+        super("El creador del evento no puede ser eliminado de su propio evento.");
     }
 }

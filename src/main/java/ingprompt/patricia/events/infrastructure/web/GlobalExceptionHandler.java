@@ -1,5 +1,6 @@
 package ingprompt.patricia.events.infrastructure.web;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import ingprompt.patricia.events.domain.exception.CannotRemoveOwnerException;
 import ingprompt.patricia.events.domain.exception.EventIsFullException;
 import ingprompt.patricia.events.domain.exception.EventNotFoundException;
@@ -9,15 +10,35 @@ import ingprompt.patricia.events.domain.exception.InvalidPictureUploadException;
 import ingprompt.patricia.events.domain.exception.NotEventOwnerException;
 import ingprompt.patricia.events.domain.exception.NotEventParticipantException;
 import ingprompt.patricia.events.domain.exception.NotParcheMemberException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Map;
 
+/**
+ * Extiende ResponseEntityExceptionHandler para que Spring MVC siga manejando
+ * sus propias excepciones (MissingRequestHeaderException, etc.) con el status
+ * correcto (400), y nosotros solo añadimos los handlers de dominio encima.
+ */
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    // Clave del campo de error en la respuesta JSON — extraída para evitar
+    // duplicación del literal (regla Sonar java:S1192).
+    private static final String ERROR_KEY = "error";
+
+    // ── Dominio ──────────────────────────────────────────────────────────────
 
     @ExceptionHandler(EventNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(EventNotFoundException ex) {
@@ -39,7 +60,40 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    // ── JSON mal formado (fecha/hora con formato incorrecto en el body) ───────
+
+    // @Nullable en el retorno coincide con la firma del padre en Spring 6/Boot 3
+    // (el paquete está anotado con @NonNullApi, pero el método padre declara
+    // @Nullable en el retorno; aquí lo honramos explícitamente para Sonar).
+    @Override
+    @Nullable
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            @NonNull HttpMessageNotReadableException ex,
+            @NonNull HttpHeaders headers,
+            @NonNull HttpStatusCode status,
+            @NonNull WebRequest request) {
+
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException ife) {
+            Class<?> targetType = ife.getTargetType();
+            if (targetType != null) {
+                if (LocalDate.class.isAssignableFrom(targetType)) {
+                    return ResponseEntity.badRequest().body(
+                        Map.of(ERROR_KEY, "El formato de fecha no es válido. Usa el formato yyyy-MM-dd (ej. 2025-07-20)."));
+                }
+                if (LocalTime.class.isAssignableFrom(targetType)) {
+                    return ResponseEntity.badRequest().body(
+                        Map.of(ERROR_KEY, "El formato de hora no es válido. Usa el formato HH:mm (ej. 14:30)."));
+                }
+            }
+        }
+        return ResponseEntity.badRequest().body(
+            Map.of(ERROR_KEY, "El cuerpo de la solicitud tiene un formato incorrecto. Revisa los datos e intenta de nuevo."));
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
     private ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
-        return ResponseEntity.status(status).body(Map.of("error", message));
+        return ResponseEntity.status(status).body(Map.of(ERROR_KEY, message));
     }
 }

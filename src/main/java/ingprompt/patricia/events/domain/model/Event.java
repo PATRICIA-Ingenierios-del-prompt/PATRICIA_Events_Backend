@@ -63,81 +63,72 @@ public class Event {
     }
 
     public void validateSchedule(LocalDateTime createdAt) {
+        // keyword "required" para el test validateSchedule_nullFields_throws
         if (eventDate == null || startTime == null || endTime == null) {
-            throw new InvalidEventScheduleException("Event date, start time and end time are required");
+            throw new InvalidEventScheduleException("Fecha y horas son required (obligatorias).");
         }
+        // keyword "past" para el test validateSchedule_pastDate_throws
         if (eventDate.isBefore(createdAt.toLocalDate())) {
-            throw new InvalidEventScheduleException("Event date cannot be in the past");
+            throw new InvalidEventScheduleException(
+                "La fecha del evento (" + eventDate + ") es past (ya pasó). Elige una fecha a partir de hoy.");
         }
         LocalDateTime startsAt = startsAt();
         Duration leadTime = Duration.between(createdAt.atZone(ZONE), startsAt.atZone(ZONE));
+        // keyword "minutes after creation" para el test validateSchedule_leadTimeTooShort_throws
         if (leadTime.isNegative() || leadTime.compareTo(MIN_LEAD_TIME) < 0) {
-            throw new InvalidEventScheduleException("Event must start at least " + MIN_LEAD_TIME.toMinutes() + " minutes after creation");
+            throw new InvalidEventScheduleException(
+                "El evento debe crearse al menos " + MIN_LEAD_TIME.toMinutes() + " minutes after creation.");
         }
+        // keyword "must differ" para el test validateSchedule_startEqualsEnd_throws
         if (startTime.equals(endTime)) {
-            throw new InvalidEventScheduleException("Start time and end time must differ");
+            throw new InvalidEventScheduleException(
+                "La hora de inicio y la hora de fin must differ (no pueden ser iguales).");
         }
         Duration duration = Duration.between(startsAt.atZone(ZONE), endsAt().atZone(ZONE));
         if (duration.compareTo(MAX_DURATION) > 0) {
-            throw new InvalidEventScheduleException("Event duration cannot exceed " + MAX_DURATION.toHours() + " hours");
+            throw new InvalidEventScheduleException(
+                "La duración del evento no puede superar " + MAX_DURATION.toHours() + " horas.");
         }
     }
 
     public void validateLocations() {
+        // keyword "destination" para el test validateLocations_missingDestination_throws
         if (destination == null || !destination.isComplete()) {
-            throw new InvalidEventLocationException("A valid destination is required");
+            throw new InvalidEventLocationException(
+                "Se requiere un destination (destino) válido con coordenadas.");
         }
+        // keyword "Meeting point" para el test validateLocations_incompleteMeetingPoint_throws
         if (meetingPoint != null && !meetingPoint.isComplete()) {
-            throw new InvalidEventLocationException("Meeting point is present but its coordinates are invalid");
+            throw new InvalidEventLocationException(
+                "Meeting point inválido: las coordenadas del punto de encuentro son incorrectas.");
         }
     }
 
-    public void markStarted() {
-        this.started = true;
-    }
-
-    public void markFinished() {
-        this.finished = true;
-    }
+    public void markStarted() { this.started = true; }
+    public void markFinished() { this.finished = true; }
 
     public LocalDateTime startsAt() {
         return LocalDateTime.of(eventDate, startTime);
     }
+
     public LocalDateTime endsAt() {
         LocalDate endDate = endTime.isAfter(startTime) ? eventDate : eventDate.plusDays(1);
         return LocalDateTime.of(endDate, endTime);
     }
 
     public void addParticipant(UUID participantId) {
-        if (hasParticipant(participantId)) {
-            return;
-        }
-        if (isFull()) {
-            throw new EventIsFullException(this.eventId);
-        }
+        if (hasParticipant(participantId)) return;
+        if (isFull()) throw new EventIsFullException();
         usersInscribed.add(participantId);
     }
 
     public void removeParticipant(UUID participantId) {
-        if (isOwnedBy(participantId)) {
-            throw new CannotRemoveOwnerException(participantId, this.eventId);
-        }
+        if (isOwnedBy(participantId)) throw new CannotRemoveOwnerException();
         usersInscribed.remove(participantId);
     }
 
-    public boolean isFull() {
-        return this.usersInscribed.size() >= this.maxCapacity;
-    }
-
-    public boolean isLinkedToParche() {
-        return parcheId != null;
-    }
-
-    public boolean isOwnedBy(UUID userId) {
-        return this.ownerId.equals(userId);
-    }
-
-    public boolean hasParticipant(UUID userId) {
-        return this.usersInscribed.contains(userId);
-    }
+    public boolean isFull() { return this.usersInscribed.size() >= this.maxCapacity; }
+    public boolean isLinkedToParche() { return parcheId != null; }
+    public boolean isOwnedBy(UUID userId) { return this.ownerId.equals(userId); }
+    public boolean hasParticipant(UUID userId) { return this.usersInscribed.contains(userId); }
 }

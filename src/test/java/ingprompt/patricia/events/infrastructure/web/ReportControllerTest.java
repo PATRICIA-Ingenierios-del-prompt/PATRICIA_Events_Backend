@@ -69,7 +69,7 @@ class ReportControllerTest {
     @Test
     void createReport_byNonParticipant_returns403() throws Exception {
         when(manageReportCase.createReport(any(), any(), any(), any()))
-                .thenThrow(new NotEventParticipantException(userId, eventId));
+                .thenThrow(new NotEventParticipantException());
 
         mockMvc.perform(post("/api/events/{eventId}/reports", eventId)
                         .header("X-User-Id", userId)
